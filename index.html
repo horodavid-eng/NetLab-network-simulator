@@ -1,0 +1,629 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#171e28" media="(prefers-color-scheme: dark)">
+<meta name="application-name" content="Trame"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Trame"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Simulateur de réseaux : construisez, configurez et testez des réseaux IP (routage, VLAN, DHCP, DNS).">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Trame — Simulateur de réseaux</title><meta name='color-scheme' content='light dark'><link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap'><style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+--bg:#eef1f5;--panel:#fff;--bar:#fff;--ink:#17202b;--mut:#5b6878;--line:#dde2ea;--line2:#c3cbd7;--acc:#1f5fbf;--acc-t:#e6eefb;--on-acc:#fff;--ok:#17794a;--warn:#a85f00;--err:#b8322a;--hot:#d99a00;--grid:#d3dae5;--term:#111a24;--term-t:#d8e4f2;
+--c-pc:#4a5f78;--c-sw:#0b7a85;--c-rt:#2c58b0;--c-sv:#8f5f0e;--c-arp:#7a5ac8;
+--sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#10151c;--panel:#171e28;--bar:#171e28;--ink:#e6ebf2;--mut:#9aa7b8;--line:#28313e;--line2:#394555;--acc:#6aa3ff;--acc-t:#1b2b47;--on-acc:#0b1220;--ok:#4cc38a;--warn:#e0a24a;--err:#f07a70;--hot:#f0b429;--grid:#1f2833;--term:#0b1016;--term-t:#d8e4f2;--c-pc:#a3b6cf;--c-sw:#4cc0cb;--c-rt:#85a9f2;--c-sv:#e0b25a;--c-arp:#a99af0}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#10151c;--panel:#171e28;--bar:#171e28;--ink:#e6ebf2;--mut:#9aa7b8;--line:#28313e;--line2:#394555;--acc:#6aa3ff;--acc-t:#1b2b47;--on-acc:#0b1220;--ok:#4cc38a;--warn:#e0a24a;--err:#f07a70;--hot:#f0b429;--grid:#1f2833;--term:#0b1016;--term-t:#d8e4f2;--c-pc:#a3b6cf;--c-sw:#4cc0cb;--c-rt:#85a9f2;--c-sv:#e0b25a;--c-arp:#a99af0}
+*{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bar);z-index:10}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+b{font-weight:600}small{color:var(--mut);font-size:12px;line-height:1.4}
+code{font:12.5px var(--mono);background:var(--bg);padding:1px 5px;border-radius:4px}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* boutons */
+button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:0 12px;min-height:36px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background-color .12s,border-color .12s}
+button:hover{background:var(--bg)}button:active{background:var(--line)}
+button:disabled{opacity:.4;cursor:default;pointer-events:none}
+button.on{background:var(--acc-t);border-color:var(--acc);color:var(--acc)}
+.dg{color:var(--err)}
+/* barre d’application */
+.bar{position:relative;flex:none;display:flex;align-items:center;gap:8px;height:48px;padding:0 10px 0 14px;background:var(--bar);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;margin-right:auto;font-weight:600;font-size:16px;letter-spacing:-.01em}
+.mk{width:22px;height:22px;fill:none;stroke:var(--acc);stroke-width:1.8;stroke-linecap:round}.mk circle{fill:var(--acc);stroke:none}
+.acts{display:flex;align-items:center;gap:4px}
+.tag{margin-left:2px;padding-left:10px;border-left:1px solid var(--line);font-size:13px;font-weight:400;letter-spacing:0;color:var(--mut)}
+@media(max-width:560px){.tag{display:none}}
+.ibtn{width:40px;padding:0;border:0;background:none}
+.menu{position:relative;margin-left:4px}
+summary{list-style:none;display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 8px 0 12px;border:1px solid var(--line2);border-radius:6px;background:var(--panel);font-weight:500;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+.menu[open] summary{background:var(--acc-t);border-color:var(--acc);color:var(--acc)}
+.pop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;min-width:236px;padding:6px;background:var(--panel);border:1px solid var(--line2);border-radius:8px;box-shadow:0 8px 24px rgba(15,25,40,.18)}
+.pop button{width:100%;justify-content:flex-start;border:0;background:none;min-height:40px}
+.pop button:hover{background:var(--bg)}
+.pop hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+/* disposition */
+.app{flex:1;min-height:0;display:flex;flex-direction:column}
+.stage{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+.tools{flex:none;display:flex;align-items:stretch;gap:4px;padding:6px 8px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tool{flex:1;flex-direction:column;gap:3px;min-height:54px;padding:4px 2px;border-color:transparent;background:none;font-size:12px;font-weight:500;color:var(--mut)}
+.tool .ic{width:26px;height:26px}
+.tool.on{border-color:var(--acc);color:var(--acc)}
+.t-pc{color:var(--c-pc)}.t-sw{color:var(--c-sw)}.t-rt{color:var(--c-rt)}.t-sv{color:var(--c-sv)}
+.sep{flex:none;width:1px;margin:6px 4px;background:var(--line)}
+.canvas{position:relative;flex:1;min-height:0}
+#sv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none;background:var(--bg)}
+.fab{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.fab button{width:40px;min-height:40px;padding:0;border:0;border-radius:0;background:none}
+.fab button+button{border-top:1px solid var(--line)}
+#msg{position:absolute;left:10px;right:62px;bottom:10px;padding:7px 10px;font-size:12.5px;background:var(--panel);border:1px solid var(--line2);border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none}
+#msg:empty{display:none}#msg.bad{border-color:var(--err);color:var(--err)}
+/* schéma */
+.gl{fill:none;stroke:var(--grid);stroke-width:.6}
+.lk{stroke:var(--ok);stroke-width:2.5}.lk.dn{stroke:var(--err);stroke-dasharray:6 5}.lk.hot{stroke:var(--hot);stroke-width:5}.lk.sel{stroke:var(--acc);stroke-width:5}
+.hit{stroke:transparent;stroke-width:22}
+.pd{fill:var(--ok);stroke:var(--bg);stroke-width:1.5}.pd.dn{fill:var(--err)}
+.nd{cursor:pointer}.nd .tile{fill:var(--panel);stroke:var(--line2);stroke-width:1.5}
+.nd .halo{display:none;fill:none;stroke:var(--acc);stroke-opacity:.22;stroke-width:6}
+.nd.sel .halo{display:block}.nd.sel .tile{stroke:var(--acc);stroke-width:2.5}
+.nd.pc{color:var(--c-pc)}.nd.sw{color:var(--c-sw)}.nd.rt{color:var(--c-rt)}.nd.sv{color:var(--c-sv)}
+.nl{fill:var(--ink);font:500 12px var(--sans);paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}
+.ns{fill:var(--mut);font:10px var(--mono);paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+/* panneau */
+#pan{flex:none;display:flex;flex-direction:column;min-height:0;background:var(--panel);border-top:1px solid var(--line2)}
+#tabs{flex:none;display:flex;padding:0 4px;border-bottom:1px solid var(--line)}
+#tabs button{flex:1;min-height:44px;margin-bottom:-1px;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--mut);font-weight:500}
+#tabs button.on{color:var(--acc);border-bottom-color:var(--acc);background:none}
+#tabs .tgl{flex:0 0 44px;padding:0}
+#tab{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:14px 16px}
+@media(max-width:899px){#pan.open{height:52%}#pan:not(.open){height:auto}#pan:not(.open) #tab{display:none}}
+@media(min-width:900px){.app{flex-direction:row}#pan{width:420px;border-top:0;border-left:1px solid var(--line2)}.tgl{display:none}}
+/* contenu des onglets */
+#tab p{margin:0 0 10px}
+#tab>p:first-child>b{display:block;font-size:15px}
+.empty{padding:28px 8px;text-align:center;color:var(--mut)}.empty b{display:block;margin-bottom:4px;font-size:15px;color:var(--ink)}
+#er{margin:0 0 12px;padding:8px 10px;border-left:3px solid var(--err);border-radius:4px;background:color-mix(in srgb,var(--err) 10%,var(--panel))}
+#er:empty{display:none}
+#er+b{margin-right:6px;font-size:17px}
+.bx{margin:0;padding:14px 0;border-top:1px solid var(--line)}
+.bx>b:first-child{font-size:13px}
+.f{display:grid;gap:4px;margin:12px 0 0;font-size:13px;font-weight:500}.f small{font-weight:400}
+input,select{width:100%;min-width:0;min-height:38px;padding:0 10px;font:13px var(--mono);color:var(--ink);background:var(--panel);border:1px solid var(--line2);border-radius:6px}
+select{padding:0 6px;font-family:var(--sans);min-height:34px;width:auto;max-width:100%}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:-1px;border-color:var(--acc)}
+input:disabled{background:var(--bg);color:var(--mut)}
+::placeholder{color:var(--mut);opacity:.75}
+.g2,.g3{display:grid;gap:8px;margin:10px 0}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:480px){.g3{grid-template-columns:1fr 1fr}.g3>:last-child{grid-column:1/-1}}
+#tab>button{margin-top:14px}
+.sg{display:flex;margin:12px 0 0}.sg button{flex:1;margin-left:-1px;border-radius:0}
+.sg button:first-child{margin:0;border-radius:6px 0 0 6px}.sg button:last-child{border-radius:0 6px 6px 0}.sg button.on{position:relative;z-index:1}
+button[data-a=apc],button[data-a=rif],button[data-a=rdh],button[data-a=radd],button[data-a=vadd],button[data-a=dadd],button[data-a=wsave],button[data-a=web],button[data-a=chk]{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+button[data-a=apc]:hover,button[data-a=rif]:hover,button[data-a=rdh]:hover,button[data-a=radd]:hover,button[data-a=vadd]:hover,button[data-a=dadd]:hover,button[data-a=wsave]:hover,button[data-a=web]:hover,button[data-a=chk]:hover{filter:brightness(1.08)}
+button[data-a=rmlink],button[data-a=rdx]{color:var(--err)}
+button[data-a=chk]{margin:6px 0 4px}
+button[data-a=dl],button[data-a=ex1],button[data-a=ex2],button[data-a=ex3]{justify-content:flex-start;min-height:40px;text-align:left;white-space:normal}
+td button,.tg button{min-height:0;padding:2px 8px;border:0;background:none;color:var(--mut)}
+td button:hover,.tg button:hover{color:var(--err);background:none}
+.tg{display:inline-flex;align-items:center;margin:0 6px 6px 0;padding:2px 2px 2px 9px;font:12.5px var(--mono);border:1px solid var(--line2);border-radius:5px}
+table{width:100%;margin:6px 0;border-collapse:collapse;font-size:12.5px}
+th{padding:6px 6px 6px 0;text-align:left;font-weight:500;color:var(--mut);border-bottom:1px solid var(--line2)}
+td{padding:6px 6px 6px 0;border-bottom:1px solid var(--line);font-family:var(--mono);vertical-align:middle}
+.ok{color:var(--ok)}.wn{color:var(--warn)}.er{color:var(--err)}
+.ck{margin:6px 0 0;padding:2px 0 2px 10px;border-left:3px solid var(--line2);font-size:13px}
+.ck.er{border-color:var(--err);color:var(--ink)}.ck.wn{border-color:var(--warn);color:var(--ink)}
+.vr{margin:10px 0}.vr div{margin:4px 0;padding:3px 0 3px 10px;border-left:3px solid var(--line2);font-size:13px}
+.vr .ok{border-color:var(--ok);color:var(--ink)}.vr .er{border-color:var(--err);color:var(--ink)}
+/* terminal et trace */
+pre{margin:0 0 10px;padding:10px 12px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:12.5px/1.5 var(--mono);color:var(--term-t);background:var(--term);border-radius:6px}
+pre:empty{display:none}.cli pre:empty{display:block;min-height:96px}
+.ch{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.ch button{min-height:30px;padding:0 9px;font:12px var(--mono);color:var(--mut);border-radius:5px}
+.r{display:flex;align-items:center;gap:8px}.r input{flex:1}
+.r label{font:13px var(--mono);color:var(--acc);white-space:nowrap}
+.cli .r{position:sticky;bottom:-14px;margin:0 -16px -14px;padding:10px 16px;background:var(--panel);border-top:1px solid var(--line)}
+.tr{position:sticky;top:-14px;z-index:1;margin:-14px -16px 10px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tr span{margin-left:auto;font:12.5px var(--mono);color:var(--mut)}.tr button{min-width:40px;padding:0 10px}
+.e{margin:0;padding:7px 8px 7px 10px;border-left:3px solid var(--line2);border-bottom:1px solid var(--line);font-size:13px}
+.e b{display:inline-block;min-width:44px;margin-right:6px;font-size:12px;color:var(--mut)}
+.e.k-arp{border-left-color:var(--c-arp)}.e.k-ip{border-left-color:var(--c-rt)}.e.k-tcp{border-left-color:var(--c-sw)}.e.k-udp{border-left-color:var(--c-sv)}
+.e.k-x{border-left-color:var(--err)}.e.k-x b{color:var(--err)}.e.h{background:var(--acc-t)}
+@media(pointer:coarse){input,select{font-size:16px}button{min-height:40px}.ch button{min-height:34px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<svg width='0' height='0' style='position:absolute' aria-hidden='true'><defs>
+<symbol id='i-pc' viewBox='-20 -20 40 40'><rect x='-15' y='-14' width='30' height='20' rx='2' fill='none' stroke='currentColor' stroke-width='2.4'/><path d='M-8 14h16M0 6v8' stroke='currentColor' stroke-width='2.4' fill='none' stroke-linecap='round'/></symbol>
+<symbol id='i-sw' viewBox='-20 -20 40 40'><rect x='-17' y='-9' width='34' height='18' rx='3' fill='none' stroke='currentColor' stroke-width='2.4'/><path d='M-11-2h13m-3-3 3 3-3 3M11 3H-2m3-3-3 3 3 3' stroke='currentColor' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></symbol>
+<symbol id='i-rt' viewBox='-20 -20 40 40'><circle r='16' fill='none' stroke='currentColor' stroke-width='2.4'/><path d='M-9 0h18M-9 0l4-3M-9 0l4 3M9 0l-4-3M9 0l-4 3M0-9v18M0-9l-3 4M0-9l3 4M0 9l-3-4M0 9l3-4' stroke='currentColor' stroke-width='2' fill='none' stroke-linecap='round'/></symbol>
+<symbol id='i-sv' viewBox='-20 -20 40 40'><rect x='-9' y='-16' width='18' height='32' rx='2' fill='none' stroke='currentColor' stroke-width='2.4'/><path d='M-5-9h10M-5-3h10M-5 3h10' stroke='currentColor' stroke-width='2' stroke-linecap='round'/><circle cx='4' cy='11' r='1.4' fill='currentColor'/></symbol>
+<symbol id='i-ln' viewBox='-20 -20 40 40'><path d='M-13 12 13-12' stroke='currentColor' stroke-width='3' stroke-linecap='round'/><circle cx='-13' cy='12' r='4' fill='currentColor'/><circle cx='13' cy='-12' r='4' fill='currentColor'/></symbol>
+<symbol id='u-undo' viewBox='0 0 24 24'><path d='M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3'/></symbol><symbol id='u-redo' viewBox='0 0 24 24'><path d='m15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3'/></symbol><symbol id='u-dn' viewBox='0 0 24 24'><path d='m6 9 6 6 6-6'/></symbol><symbol id='u-up' viewBox='0 0 24 24'><path d='m6 15 6-6 6 6'/></symbol><symbol id='u-fit' viewBox='0 0 24 24'><path d='M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'/></symbol><symbol id='u-trash' viewBox='0 0 24 24'><path d='M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3'/></symbol><symbol id='u-plus' viewBox='0 0 24 24'><path d='M12 5v14M5 12h14'/></symbol><symbol id='u-minus' viewBox='0 0 24 24'><path d='M5 12h14'/></symbol><symbol id='u-prev' viewBox='0 0 24 24'><path d='m15 6-6 6 6 6'/></symbol><symbol id='u-next' viewBox='0 0 24 24'><path d='m9 6 6 6-6 6'/></symbol><symbol id='u-play' viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></symbol></defs></svg>
+<header class='bar'><div class='brand'><svg class='mk' viewBox='0 0 24 24' aria-hidden='true'><circle cx='6' cy='6' r='2.6'/><circle cx='18' cy='8' r='2.6'/><circle cx='11' cy='18' r='2.6'/><path d='m8 7 8 1M7 8l3 8M17 10l-5 6'/></svg>Trame<span class='tag'>Simulateur de réseaux</span></div>
+<div class='acts'><button data-a='undo' class='ibtn' aria-label='Annuler' title='Annuler'><svg class='ic' aria-hidden='true'><use href='#u-undo'/></svg></button><button data-a='redo' class='ibtn' aria-label='Rétablir' title='Rétablir'><svg class='ic' aria-hidden='true'><use href='#u-redo'/></svg></button>
+<details class='menu'><summary>Projet<svg class='ic' aria-hidden='true'><use href='#u-dn'/></svg></summary><div class='pop'><div id='inst' hidden><button id='instb'>Installer l’application</button><hr></div>
+<button data-a='save'>Enregistrer sur l’appareil</button><button data-a='load'>Ouvrir l’enregistrement</button><hr>
+<button data-a='exp'>Exporter en fichier .json</button><button data-a='imp'>Importer un fichier…</button><hr>
+<button data-a='ex'>Recharger le labo</button><button data-a='new' class='dg'>Nouveau réseau vierge</button></div></details></div>
+<input type='file' id='fimp' accept='.json,application/json' hidden></header>
+<main class='app'><section class='stage'>
+<div class='tools' role='toolbar' aria-label='Ajouter un équipement'>
+<button class='tool' data-a='pc'><svg class='ic t-pc' aria-hidden='true'><use href='#i-pc'/></svg>PC</button>
+<button class='tool' data-a='sw'><svg class='ic t-sw' aria-hidden='true'><use href='#i-sw'/></svg>Switch</button>
+<button class='tool' data-a='rt'><svg class='ic t-rt' aria-hidden='true'><use href='#i-rt'/></svg>Routeur</button>
+<button class='tool' data-a='sv'><svg class='ic t-sv' aria-hidden='true'><use href='#i-sv'/></svg>Serveur</button>
+<i class='sep'></i>
+<button class='tool' id='lk' data-a='link'><svg class='ic' aria-hidden='true'><use href='#i-ln'/></svg>Câble</button></div>
+<div class='canvas'><svg id='sv' viewBox='0 0 360 400' role='img' aria-label='Schéma du réseau'></svg>
+<div class='fab'><button data-a='zin'  aria-label='Zoom avant' title='Zoom avant'><svg class='ic' aria-hidden='true'><use href='#u-plus'/></svg></button><button data-a='zout'  aria-label='Zoom arrière' title='Zoom arrière'><svg class='ic' aria-hidden='true'><use href='#u-minus'/></svg></button><button data-a='fit'  aria-label='Recentrer le schéma' title='Recentrer le schéma'><svg class='ic' aria-hidden='true'><use href='#u-fit'/></svg></button><button data-a='del' id='del' class='dg' aria-label='Supprimer l’équipement sélectionné' title='Supprimer l’équipement sélectionné'><svg class='ic' aria-hidden='true'><use href='#u-trash'/></svg></button></div>
+<div id='msg' role='status' aria-live='polite'></div></div></section>
+<section id='pan'><div id='tabs' role='tablist'></div><div id='tab'></div></section></main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* ===== MODÈLE + MOTEUR RÉSEAU (aucune dépendance au DOM) ===== */
+const ip2n=s=>s.split('.').reduce((a,b)=>a*256+ +b,0),dot=n=>[24,16,8,0].map(s=>(n>>>s)&255).join('.');
+const okIp=s=>/^(\d{1,3}\.){3}\d{1,3}$/.test(s)&&s.split('.').every(x=>+x<256);
+const okMask=s=>okIp(s)&&/^1*0*$/.test(ip2n(s).toString(2).padStart(32,'0'));
+const plen=m=>ip2n(m).toString(2).replace(/0/g,'').length,netOf=(i,m)=>(ip2n(i)&ip2n(m))>>>0;
+const blank=()=>({n:0,devs:[],links:[],ev:[],step:-1});let S=blank();
+const dv=id=>S.devs.find(d=>d.id==id);
+function mk(t,name,x,y){const id=++S.n,h=v=>v.toString(16).padStart(2,'0'),
+ P=t==='pc'||t==='sv'?['Eth0']:t==='sw'?[1,2,3,4,5,6,7,8].map(i=>'Fa0/'+i):['Gi0/0','Gi0/1','Gi0/2'];
+ const d={id,type:t,name,x,y,gw:'',routes:[],arp:{},mt:{},out:[],mode:'user',cur:0,vlans:{1:'default'},
+  ifs:P.map((n,i)=>({n,ip:'',mask:'',up:t!=='rt',mode:'access',vlan:1,mac:`02:00:00:00:${h(id)}:${h(i)}`}))};
+ if(t==='sv')d.svc={dns:{on:false,rec:{}},web:{on:false,page:'Bienvenue sur le serveur web Trame.'}};S.devs.push(d);return d}
+function peer(d,i){const l=S.links.find(l=>(l[0]===d.id&&l[1]===i)||(l[2]===d.id&&l[3]===i));if(!l)return null;
+ const f=l[0]===d.id&&l[1]===i,n=dv(f?l[2]:l[0]),j=f?l[3]:l[1];
+ return d.ifs[i].up&&n.ifs[j].up?[n,n.ifs[j],j]:null}
+function l2(d,i,f,ev){const out=[],seen=new Set();
+ (function go(a,ai,tag){const p=peer(a,ai);if(!p)return;const[n,ni,nj]=p;
+  ev.push({a:a.id,b:n.id,k:f.k,t:`Trame ${f.src} → ${f.dst}${tag?' [802.1Q VLAN '+tag+']':''} · ${f.d}`});
+  if(n.type!=='sw'){if(!tag)out.push([n,ni]);else ev.push({a:n.id,b:n.id,k:'x',t:`${n.name} ignore la trame étiquetée VLAN ${tag} (pas de sous-interfaces)`});return}
+  const tr=ni.mode==='trunk',v=tr?(tag||1):(ni.vlan||1);
+  if(!tr&&tag){ev.push({a:n.id,b:n.id,k:'x',t:`${n.name} ${ni.n} : trame étiquetée VLAN ${tag} reçue sur un port access, rejetée (trunk configuré d’un seul côté ?)`});return}
+  if(!n.vlans[v]){ev.push({a:n.id,b:n.id,k:'x',t:`${n.name} : le VLAN ${v} n’existe pas sur ce switch, trame rejetée`});return}
+  if(seen.has(n.id+'|'+v))return;seen.add(n.id+'|'+v);
+  if(n.mt[v+'|'+f.src]!==ni.n){n.mt[v+'|'+f.src]=ni.n;ev.push({a:n.id,b:n.id,k:'i',t:`${n.name} apprend ${f.src} sur ${ni.n} (VLAN ${v})`})}
+  const t=n.mt[v+'|'+f.dst];n.ifs.forEach((x,j)=>{if(j===nj||(t&&t!==x.n))return;if(x.mode==='trunk')go(n,j,v===1?null:v);else if((x.vlan||1)===v)go(n,j,null)})})(d,i,null);
+ return out}
+function arp(d,ic,ip,ev){if(d.arp[ip])return d.arp[ip];
+ const r=l2(d,d.ifs.indexOf(ic),{src:ic.mac,dst:'ff:ff:ff:ff:ff:ff',k:'arp',d:`ARP : qui a ${ip} ? Répondre à ${ic.ip}`},ev),t=r.find(([n,ni])=>ni.ip===ip);
+ if(!t)return null;
+ const[n,ni]=t;ev.miss=1;d.arp[ip]=ni.mac;n.arp[ic.ip]=ic.mac;
+ l2(n,n.ifs.indexOf(ni),{src:ni.mac,dst:ic.mac,k:'arp',d:`ARP : ${ip} est à ${ni.mac}`},ev);return ni.mac}
+const allRoutes=d=>d.gw?[{n:'0.0.0.0',m:'0.0.0.0',v:d.gw},...d.routes]:d.routes;
+function route(d,dst){let b=null,bl=-1;
+ d.ifs.forEach(ic=>{if(ic.up&&ic.ip&&netOf(dst,ic.mask)===netOf(ic.ip,ic.mask)&&plen(ic.mask)>bl){bl=plen(ic.mask);b={ic,nh:dst}}});
+ allRoutes(d).forEach(r=>{if(netOf(dst,r.m)===netOf(r.n,r.m)&&plen(r.m)>bl){
+  const ic=d.ifs.find(x=>x.up&&x.ip&&netOf(r.v,x.mask)===netOf(x.ip,x.mask));if(ic){bl=plen(r.m);b={ic,nh:r.v}}}});
+ return b}
+const mine=(d,ip)=>d.ifs.some(i=>i.up&&i.ip===ip);
+const isH=d=>d.type==='pc'||d.type==='sv';
+const bad=(d,ev,why)=>(ev.push({a:d.id,b:d.id,k:'x',t:why}),{ok:0,why,at:d});
+function ipOut(d,p,ev){
+ if(mine(d,p.dst))return{ok:1,at:d,ttl:p.ttl};
+ const r=route(d,p.dst);
+ if(!r)return bad(d,ev,`${d.name} : aucune route vers ${p.dst}`+(isH(d)&&!d.gw?' (pas de passerelle par défaut)':''));
+ const mac=arp(d,r.ic,r.nh,ev);
+ if(!mac)return bad(d,ev,`${d.name} : ARP sans réponse pour ${r.nh} (câble, interface éteinte ou mauvaise adresse ?)`);
+ if(!p.src)p.src=r.ic.ip;
+ const hit=l2(d,d.ifs.indexOf(r.ic),{src:r.ic.mac,dst:mac,k:p.k||'ip',d:`Paquet IP ${p.src} → ${p.dst} TTL=${p.ttl} (${p.what})`},ev).find(([n,ni])=>ni.mac===mac);
+ if(!hit)return bad(d,ev,'Trame perdue');
+ const n=hit[0];
+ if(mine(n,p.dst))return{ok:1,at:n,ttl:p.ttl};
+ if(n.type!=='rt')return bad(n,ev,`${n.name} ne route pas : ce n’est pas l’adresse destinataire`);
+ if(p.ttl<=1)return bad(n,ev,`TTL expiré chez ${n.name}`);
+ return ipOut(n,{...p,ttl:p.ttl-1},ev)}
+function ping(d,dst){const ev=[],t0=x=>isH(x)?128:255;
+ if(mine(d,dst))return{ok:1,ttl:t0(d),ev};
+ const p={src:'',dst,ttl:t0(d),what:'ICMP echo-request'},q=ipOut(d,p,ev);
+ if(!q.ok)return{ok:0,why:q.why,ev};
+ const r=ipOut(q.at,{src:dst,dst:p.src,ttl:t0(q.at),what:'ICMP echo-reply'},ev);
+ return r.ok?{ok:1,ttl:r.ttl,ev}:{ok:0,why:'Retour impossible : '+r.why,ev}}
+/* ===== CONFIGURATION (partagée par les formulaires et le terminal) ===== */
+const flush=()=>S.devs.forEach(x=>x.arp={}),cab=(d,i)=>S.links.some(l=>(l[0]===d.id&&l[1]===i)||(l[2]===d.id&&l[3]===i));
+const hostErr=(ip,mask)=>{if(!okIp(ip))return'Adresse IPv4 invalide (ex. 192.168.1.10).';if(!okMask(mask))return'Masque invalide (ex. 255.255.255.0).';
+ const n=netOf(ip,mask),a=ip2n(ip);return a===n||a===((n|~ip2n(mask))>>>0)?'Adresse réseau ou de diffusion : choisissez une adresse d’hôte.':''};
+function setHost(d,ip,mask,gw,dns){const e=hostErr(ip,mask);if(e)return e;
+ if(gw&&(!okIp(gw)||netOf(gw,mask)!==netOf(ip,mask)))return'Passerelle invalide ou hors du sous-réseau de l’hôte.';
+ if(dns&&!okIp(dns))return'Serveur DNS invalide.';
+ const x=d.ifs[0];x.ip=ip;x.mask=mask;d.gw=gw||'';d.dns=dns||'';d.dh=false;flush();return''}
+function setIf(d,ic,ip,mask){const e=hostErr(ip,mask);if(e)return e;
+ const o=d.ifs.find(x=>{const s=plen(mask)<plen(x.mask)?mask:x.mask;return x!==ic&&x.ip&&netOf(ip,s)===netOf(x.ip,s)});
+ if(o)return`Ce réseau chevauche celui de ${o.n} (${o.ip}).`;
+ ic.ip=ip;ic.mask=mask;flush();return''}
+function addRoute(d,n,k,v){if(!okIp(n)||!okMask(k)||!okIp(v))return'Réseau, masque et saut suivant doivent être des adresses IPv4 valides.';
+ if(netOf(n,k)!==ip2n(n))return`${n} n’est pas une adresse de réseau pour ce masque (essayez ${dot(netOf(n,k))}).`;
+ if(d.routes.some(r=>r.n===n&&r.m===k&&r.v===v))return'Cette route existe déjà.';
+ d.routes.push({n,m:k,v});return''}
+function setDhcp(d,ic,on,start,cnt,dns){if(!on){ic.dhcp=null;return''}
+ if(!ic.ip)return'Configurez d’abord l’adresse IP de l’interface.';
+ cnt=+cnt;if(!okIp(start)||!(cnt>=1&&cnt<=250)||(dns&&!okIp(dns)))return'Pool invalide : adresse de début, nombre (1 à 250) et DNS valides requis.';
+ const n=netOf(ic.ip,ic.mask);
+ if(netOf(start,ic.mask)!==n||netOf(dot(ip2n(start)+cnt-1),ic.mask)!==n)return`Le pool doit rester dans le réseau de l’interface (${dot(n)}/${plen(ic.mask)}).`;
+ ic.dhcp={start,n:cnt,dns:dns||'',leases:ic.dhcp?ic.dhcp.leases:{}};return''}
+function dhcp(d){const ev=[],e=d.ifs[0],B='ff:ff:ff:ff:ff:ff';e.ip='';e.mask='';d.gw='';d.dns='';d.arp={};
+ const rx=l2(d,0,{src:e.mac,dst:B,k:'ip',d:'DHCP Discover (UDP 68 → 67)'},ev),s=rx.find(([n,ni])=>n.type==='rt'&&ni.ip&&ni.dhcp&&netOf(ni.dhcp.start,ni.mask)===netOf(ni.ip,ni.mask));
+ if(!s)return{...bad(d,ev,'Aucun serveur DHCP n’a répondu : câble ou routeur éteint, interface sans adresse, DHCP non activé sur l’interface du routeur ou pool hors du réseau.'),ev};
+ const[r,ri]=s,D=ri.dhcp,j=r.ifs.indexOf(ri),used=new Set(S.devs.flatMap(x=>x.ifs.map(i=>i.ip)));
+ let ip=D.leases[e.mac];if(!ip||used.has(ip)){ip='';for(let k=0;k<D.n&&!ip;k++){const c=dot(ip2n(D.start)+k);if(!used.has(c))ip=c}}
+ if(!ip)return{...bad(r,ev,`Le pool DHCP de ${r.name} ${ri.n} est épuisé.`),ev};
+ l2(r,j,{src:ri.mac,dst:e.mac,k:'ip',d:`DHCP Offer : ${ip}`},ev);
+ l2(d,0,{src:e.mac,dst:B,k:'ip',d:`DHCP Request : ${ip}`},ev);
+ l2(r,j,{src:ri.mac,dst:e.mac,k:'ip',d:`DHCP Ack : ${ip}, passerelle ${ri.ip}`},ev);
+ D.leases[e.mac]=ip;e.ip=ip;e.mask=ri.mask;d.gw=ri.ip;d.dns=D.dns;return{ok:1,ev,ip}}
+function dhcpRun(d){d.dh=true;const r=dhcp(d);S.ev=r.ev;S.step=-1;return r}
+function check(d){const L=[],w=(l,t)=>L.push([l,t]),all=S.devs.flatMap(x=>x.ifs.map(i=>[x,i]));
+ if(d.type==='sw')return swCheck(d,w,L);
+ d.ifs.forEach((x,i)=>{
+  if(!cab(d,i))w('wn',`${x.n} : aucun câble branché`);else if(!x.up)w('wn',`${x.n} : interface désactivée, la liaison est inactive`);
+  if(d.type==='rt'&&cab(d,i)&&!x.ip)w('wn',`${x.n} : aucune adresse IP (pas de communication possible par cette interface)`);
+  const f=far(d,i);if(f&&f[0].type==='sw'&&f[1].mode==='trunk')w('wn',`${x.n} : branché sur un port trunk (${f[0].name} ${f[1].n}) : seules les trames du VLAN natif 1 passent`);
+  if(!x.ip)return;
+  const o=all.find(([y,j])=>j!==x&&j.ip===x.ip);if(o)w('er',`${x.n} : l’adresse ${x.ip} est déjà utilisée par ${o[0].name} ${o[1].n}`);
+  d.ifs.forEach((y,k)=>{if(k>i&&y.ip){const s=plen(x.mask)<plen(y.mask)?x.mask:y.mask;if(netOf(x.ip,s)===netOf(y.ip,s))w('er',`${x.n} et ${y.n} sont dans le même réseau`)}});
+  if(x.dhcp&&netOf(x.dhcp.start,x.mask)!==netOf(x.ip,x.mask))w('er',`${x.n} : le pool DHCP n’est plus dans le réseau de l’interface (serveur inactif)`)});
+ if(isH(d)){const e=d.ifs[0];
+  if(!e.ip)w(d.dh?'wn':'er',d.dh?'DHCP : aucune adresse reçue (relancez la demande)':'Aucune adresse IPv4 : le PC ne peut pas communiquer');
+  else if(!d.gw)w('wn','Pas de passerelle : ce PC ne joindra que son propre réseau');
+  else{const g=all.find(([y,j])=>j.ip===d.gw);if(!g)w('wn',`Aucun équipement du labo n’a l’adresse ${d.gw} (passerelle)`);else{const v1=vlanAt(d,0),v2=vlanAt(g[0],g[0].ifs.indexOf(g[1]));if(v1&&v2&&v1!==v2)w('wn',`Ce PC est dans le VLAN ${v1} mais la passerelle ${d.gw} (${g[0].name} ${g[1].n}) est dans le VLAN ${v2} : ils ne peuvent pas échanger de trames`)}}}
+ if(isH(d)&&d.dns){const s=all.find(([y,j])=>j.ip===d.dns);if(!s)w('wn',`Serveur DNS ${d.dns} : aucun équipement du labo n’a cette adresse`);else if(!(s[0].svc&&s[0].svc.dns.on))w('wn',`${s[0].name} (${d.dns}) n’a pas le service DNS activé`)}
+ if(d.type==='sv'&&d.svc.dns.on&&!Object.keys(d.svc.dns.rec).length)w('wn','Service DNS activé mais sans aucun enregistrement');
+ if(d.type==='rt')d.routes.forEach(r=>{if(!d.ifs.some(x=>x.up&&x.ip&&netOf(r.v,x.mask)===netOf(x.ip,x.mask)))w('wn',`Route ${r.n}/${plen(r.m)} : le saut suivant ${r.v} n’est dans aucun réseau connecté actif (route inactive)`)});
+ return L}
+/* ===== VLAN (modèle partagé par les formulaires et le terminal) ===== */
+const far=(d,i)=>{const l=S.links.find(l=>(l[0]===d.id&&l[1]===i)||(l[2]===d.id&&l[3]===i));if(!l)return null;const f=l[0]===d.id&&l[1]===i,n=dv(f?l[2]:l[0]);return[n,n.ifs[f?l[3]:l[1]]]};
+const vlanAt=(d,i)=>{const f=far(d,i);return f&&f[0].type==='sw'?(f[1].mode==='trunk'?1:f[1].vlan):null};
+function setPort(d,i,mode,vlan){const x=d.ifs[i];
+ if(vlan!==null){const v=+vlan;if(!Number.isInteger(v)||v<1||v>4094)return'VLAN invalide (1 à 4094).';if(!d.vlans[v])return`Le VLAN ${v} n’existe pas sur ${d.name} : créez-le d’abord.`;x.vlan=v}
+ if(mode!==null){if(mode!=='access'&&mode!=='trunk')return'Mode invalide (access ou trunk).';x.mode=mode}
+ d.mt={};return''}
+function addVlan(d,id,name){const v=+id;if(!id||!Number.isInteger(v)||v<1||v>4094)return'Numéro de VLAN invalide (1 à 4094).';if(d.vlans[v])return`Le VLAN ${v} existe déjà.`;if(name&&!/^[\w-]{1,32}$/.test(name))return'Nom invalide (lettres, chiffres, - et _).';d.vlans[v]=name||'VLAN'+String(v).padStart(4,'0');return''}
+function delVlan(d,id){const v=+id;if(v===1)return'Le VLAN 1 ne peut pas être supprimé.';delete d.vlans[v];d.mt={};return''}
+function swCheck(d,w,L){d.ifs.forEach((x,i)=>{const f=far(d,i);
+ if(x.mode==='access'&&!d.vlans[x.vlan])w('wn',`${x.n} : le VLAN ${x.vlan} n’existe pas sur ${d.name} (port inactif)`);
+ if(f&&f[0].type==='sw'){const y=f[1];
+  if(x.mode!==y.mode)w('wn',`${x.n} (${x.mode}) ↔ ${f[0].name} ${y.n} (${y.mode}) : modes différents, les VLAN ne passeront pas correctement`);
+  else if(x.mode==='access'&&x.vlan!==y.vlan)w('wn',`${x.n} (VLAN ${x.vlan}) ↔ ${f[0].name} ${y.n} (VLAN ${y.vlan}) : VLAN différents de chaque côté du lien`);
+  else if(x.mode==='trunk'){const m=Object.keys(d.vlans).filter(v=>!f[0].vlans[v]);if(m.length)w('wn',`Trunk ${x.n} : VLAN ${m.join(', ')} absent(s) de ${f[0].name} (trames rejetées de l’autre côté)`)}}});return L}
+/* ===== SERVEURS : DNS (UDP 53) ET HTTP (TCP 80) ===== */
+function flow(d,dst,steps,ev,x){for(const[w,what,k]of steps){let r;
+  if(w==='c'){const p={src:'',dst,ttl:isH(d)?128:255,what,k};r=ipOut(d,p,ev);if(r.ok){x.srv=r.at;x.src=p.src}}
+  else r=ipOut(x.srv,{src:dst,dst:x.src,ttl:isH(x.srv)?128:255,what,k},ev);
+  if(!r.ok)return{ok:0,why:(w==='s'?'retour impossible : ':'')+r.why}}
+ return{ok:1}}
+function resolve(d,name,ev){if(okIp(name))return{ok:1,ip:name};
+ if(!d.dns)return{ok:0,why:`Aucun serveur DNS configuré sur ${d.name} : renseignez-en un (onglet Config) ou utilisez une adresse IP.`};
+ const x={srv:null,src:''},sp=49152+d.id,n=name.toLowerCase();
+ let f=flow(d,d.dns,[['c',`DNS requête A ${n} (UDP ${sp} → 53)`,'udp']],ev,x);
+ if(!f.ok)return{ok:0,why:`Serveur DNS ${d.dns} injoignable : ${f.why}`};
+ const s=x.srv.svc&&x.srv.svc.dns;
+ if(!s||!s.on)return{ok:0,why:`${d.dns} ne répond pas sur UDP 53 : aucun service DNS actif sur cet équipement.`};
+ const ip=s.rec[n];
+ f=flow(d,d.dns,[['s',ip?`DNS réponse ${n} = ${ip} (UDP 53 → ${sp})`:`DNS réponse NXDOMAIN pour ${n} (UDP 53 → ${sp})`,'udp']],ev,x);
+ if(!f.ok)return{ok:0,why:`Réponse DNS perdue : ${f.why}`};
+ return ip?{ok:1,ip}:{ok:0,why:`Le serveur DNS ne connaît pas « ${n} » (NXDOMAIN).`}}
+function browse(d,url){const ev=[],m=String(url||'').trim().match(/^(?:https?:\/\/)?([^\/\s:]+)(?::(\d+))?(\/\S*)?$/i);
+ if(!m)return{ok:0,why:'URL invalide (ex. http://www.netlab.lan ou http://192.168.2.53).',ev};
+ if(m[2]&&m[2]!=='80')return{ok:0,why:'Seul le port 80 est simulé.',ev};
+ const host=m[1].toLowerCase(),path=m[3]||'/',r=resolve(d,host,ev);
+ if(!r.ok)return{ok:0,why:'Résolution du nom impossible. '+r.why,ev};
+ const x={srv:null,src:''},sp=49152+d.id+1,ip=r.ip;
+ let f=flow(d,ip,[['c',`TCP SYN (${sp} → 80)`,'tcp']],ev,x);
+ if(!f.ok)return{ok:0,why:`Connexion impossible vers ${ip} : ${f.why}`,ev};
+ const w=x.srv.svc&&x.srv.svc.web;
+ if(!w||!w.on){flow(d,ip,[['s','TCP RST : aucun service sur le port 80','tcp']],ev,x);return{ok:0,why:`Connexion refusée par ${ip} : aucun service web actif sur le port 80 (réponse RST).`,ev}}
+ f=flow(d,ip,[['s',`TCP SYN-ACK (80 → ${sp})`,'tcp'],['c',`TCP ACK (${sp} → 80) : connexion établie`,'tcp'],['c',`HTTP GET ${path}`,'tcp'],['s','HTTP 200 OK + page','tcp']],ev,x);
+ if(!f.ok)return{ok:0,why:`Échange interrompu : ${f.why}`,ev};
+ return{ok:1,ip,host,page:w.page,ev}}
+function addRec(d,name,ip){const n=String(name).toLowerCase();if(!/^[a-z0-9]([a-z0-9.-]{0,60}[a-z0-9])?$/.test(n))return'Nom invalide (lettres, chiffres, points et tirets ; ex. www.netlab.lan).';if(!okIp(ip))return'Adresse IPv4 invalide.';if(!d.svc.dns.rec[n]&&Object.keys(d.svc.dns.rec).length>=30)return'30 enregistrements maximum.';d.svc.dns.rec[n]=ip;return''}
+/* ===== TERMINAL (commandes qui lisent/modifient l’état simulé) ===== */
+const ps1=d=>isH(d)?d.name+'>':d.name+({user:'>',priv:'#',cfg:'(config)#',if:'(config-if)#'}[d.mode]);
+const findIf=(d,s)=>{const m=s.match(/(\d+(?:\/\d+)?)$/);return m&&d.ifs.find(i=>i.n.endsWith(m[1])&&i.n[0].toLowerCase()===s[0].toLowerCase())};
+function doPing(d,dst,n){if(!dst)return['Syntaxe : ping <adresse IPv4 ou nom>'];
+ const ev0=[];let nm='';
+ if(!okIp(dst)){if(!isH(d))return['Syntaxe : ping <adresse IPv4> (les noms ne sont résolus que sur les PC et serveurs)'];const q=resolve(d,dst,ev0);if(!q.ok){S.ev=ev0;S.step=-1;return[`La requête ping n’a pas pu trouver l’hôte ${dst}.`,'Cause (simulateur) : '+q.why]}nm=dst;dst=q.ip}
+ const r=ping(d,dst);if(nm)r.ev=ev0.concat(r.ev);S.ev=r.ev;S.step=-1;
+ if(isH(d)){const L=[`Ping de ${nm?nm+' ['+dst+']':dst} avec 32 octets :`];
+  for(let k=0;k<n;k++)L.push(r.ok?`Réponse de ${dst} : octets=32 temps<1ms TTL=${r.ttl}`:'Délai d’attente de la demande dépassé.');
+  if(!r.ok)L.push('Cause (simulateur) : '+r.why);return L}
+ const lost=r.ok?(r.ev.miss?1:0):n;
+ return[`Envoi de ${n} échos ICMP vers ${dst} :`,'.'.repeat(lost)+'!'.repeat(n-lost),`Taux de réussite : ${100*(n-lost)/n} % (${n-lost}/${n})`,...(r.ok?[]:['Cause (simulateur) : '+r.why])]}
+function pcCmd(d,a,c){const e=d.ifs[0];
+ if(c==='help')return['ipconfig · ipconfig /renew · ip <adresse> <masque> [passerelle] · ping <ip> · arp -a · cls','nslookup <nom> · curl <nom ou ip> (HTTP) · ping <nom ou ip>','tracert, netstat : pas encore pris en charge.'];
+ if(c==='ipconfig'&&a[1]==='/renew'){const r=dhcpRun(d);return[r.ok?'Bail DHCP obtenu : '+r.ip+' (passerelle '+d.gw+')':'Échec DHCP : '+r.why]}
+ if(c==='ipconfig')return['Adresse MAC . . . : '+e.mac,'Adresse IPv4 . . . : '+(e.ip||'(non configurée)'),'Masque . . . . . . : '+(e.mask||'-'),'Passerelle . . . . : '+(d.gw||'-'),'Serveur DNS . . . : '+(d.dns||'-'),'Adressage . . . . : '+(d.dh?'DHCP':'statique')];
+ if(c==='ip'){const[,i,m,g]=a,x=setHost(d,i||'',m||'',g||'',d.dns);if(x)return[x];
+  
+  return['Configuration appliquée.']}
+ if(c==='arp'){const L=Object.entries(d.arp).map(([k,v])=>`${k}  ${v}`);return L.length?L:['Aucune entrée ARP.']}
+ if(c==='nslookup'){if(!a[1])return['Syntaxe : nslookup <nom>'];const ev=[],q=resolve(d,a[1],ev);S.ev=ev;S.step=-1;
+  return q.ok?[`Serveur :  ${d.dns||'(aucun)'}`,`Nom :      ${a[1].toLowerCase()}`,`Adresse :  ${q.ip}`]:['*** '+q.why]}
+ if(c==='curl'||c==='http'){if(!a[1])return['Syntaxe : curl <nom ou adresse>  (ex. curl www.netlab.lan)'];const r=browse(d,a[1]);S.ev=r.ev;S.step=-1;
+  return r.ok?[`Connexion à ${r.host} [${r.ip}] : TCP 80 établie.`,'HTTP/1.1 200 OK','',r.page]:['Échec : '+r.why]}
+ if(c==='ping')return doPing(d,a[1],4);
+ return[`'${a[0]}' : commande inconnue ou non prise en charge.`]}
+function netCmd(d,a,c){const rt=d.type==='rt',m=d.mode,J=a.slice(1).join(' ').toLowerCase(),inv='% Commande invalide ou non prise en charge dans cette version.',NP='% Privilèges insuffisants : tapez enable';
+ if(c==='?'||c==='help')return['enable · configure terminal · hostname · interface · ip address · ip route · shutdown / no shutdown','switch : vlan <id> · name <nom> · switchport mode access|trunk · switchport access vlan <id>','show ip interface brief · show ip route · show mac address-table · show vlan brief · show interfaces trunk · show arp · show running-config · ping'];
+ if(c==='enable'){d.mode='priv';return[]}
+ if(c==='disable'){d.mode='user';return[]}
+ if(c==='end'){if(m!=='user')d.mode='priv';return[]}
+ if(c==='exit'){d.mode={if:'cfg',vl:'cfg',cfg:'priv'}[m]||'user';return[]}
+ if(c==='conf'||c==='configure'){if(m==='user')return[NP];d.mode='cfg';return[]}
+ if(m==='cfg'||m==='if'||m==='vl'){
+  if(c==='vlan'&&!rt&&m!=='if'){const v=+a[1];if(!Number.isInteger(v)||v<1||v>4094)return['% VLAN invalide (1 à 4094)'];if(!d.vlans[v])d.vlans[v]='VLAN'+String(v).padStart(4,'0');d.cur=v;d.mode='vl';return[]}
+  if(c==='name'&&m==='vl'){if(!a[1]||!/^[\w-]{1,32}$/.test(a[1]))return['% Syntaxe : name <nom> (lettres, chiffres, - et _)'];d.vlans[d.cur]=a[1];return[]}
+  if(c==='hostname'){if(!/^[\w-]+$/.test(a[1]||''))return['% Nom invalide'];d.name=a[1];return[]}
+  if(c==='interface'||c==='int'){const i=findIf(d,a.slice(1).join(''));if(!i)return['% Interface invalide. Disponibles : '+d.ifs.map(x=>x.n).join(', ')];d.cur=d.ifs.indexOf(i);d.mode='if';return[]}
+  if(c==='ip'&&a[1]==='route'&&rt&&m==='cfg'){const x=addRoute(d,a[2]||'',a[3]||'',a[4]||'');return x?['% '+x]:[]}
+  if(m==='if'){const ic=d.ifs[d.cur];
+   if(c==='ip'&&a[1]==='address'&&rt){const x=setIf(d,ic,a[2]||'',a[3]||'');return x?['% '+x]:[]}
+   if(c==='switchport'&&!rt){const x=a[1]==='mode'&&(a[2]==='access'||a[2]==='trunk')?setPort(d,d.cur,a[2],null):a[1]==='access'&&a[2]==='vlan'?setPort(d,d.cur,null,a[3]):'Syntaxe : switchport mode access|trunk ou switchport access vlan <id>';return x?['% '+x]:[]}
+   if(c==='shutdown'){ic.up=false;return[]}
+   if(c==='no'&&a[1]==='shutdown'){ic.up=true;return[]}}
+  return[inv]}
+ if(c==='ping')return doPing(d,a[1],5);
+ if(c==='show'){
+  if(J==='ip interface brief'&&rt)return['Interface    Adresse IP       État',...d.ifs.map((x,i)=>`${x.n.padEnd(12)} ${(x.ip||'non attribuée').padEnd(16)} ${!x.up?'administrativement down':peer(d,i)?'up':'down'}`)];
+  if(J==='ip route'&&rt){const L=[];d.ifs.forEach(x=>{if(x.up&&x.ip)L.push(`C  ${dot(netOf(x.ip,x.mask))}/${plen(x.mask)} directement connecté, ${x.n}`)});d.routes.forEach(r=>L.push(`S  ${r.n}/${plen(r.m)} [1/0] via ${r.v}`));return L.length?L:['Table de routage vide.']}
+  if(J==='mac address-table'&&!rt){const e=Object.entries(d.mt);return e.length?['VLAN  Adresse MAC        Port',...e.map(([k,v])=>{const[q,mc]=k.split('|');return`${q.padEnd(6)}${mc}  ${v}`})]:['Table MAC vide : aucune trame apprise.']}
+  if(J==='arp'||J==='ip arp'){const e=Object.entries(d.arp);return e.length?e.map(([k,v])=>`${k}  ${v}`):['Table ARP vide.']}
+  if(J==='running-config'){if(m==='user')return[NP];return[`hostname ${d.name}`,...(rt?[]:Object.keys(d.vlans).filter(v=>v!=='1').flatMap(v=>[`vlan ${v}`,` name ${d.vlans[v]}`])),...d.ifs.flatMap(x=>[`interface ${x.n}`,...(rt?[x.ip?` ip address ${x.ip} ${x.mask}`:' no ip address']:[` switchport mode ${x.mode}`,...(x.mode==='access'?[` switchport access vlan ${x.vlan}`]:[])]),x.up?' no shutdown':' shutdown']),...d.routes.map(r=>`ip route ${r.n} ${r.m} ${r.v}`)]}
+  if(J==='vlan brief'&&!rt)return['VLAN  Nom         Ports',...Object.keys(d.vlans).sort((x,y)=>x-y).map(v=>`${v.padEnd(6)}${d.vlans[v].padEnd(12)}${d.ifs.filter(x=>x.mode==='access'&&x.vlan==v).map(x=>x.n).join(', ')}`)];
+  if(J==='interfaces trunk'&&!rt){const L=d.ifs.filter(x=>x.mode==='trunk');return L.length?['Port    Mode   VLAN natif  VLAN autorisés',...L.map(x=>`${x.n.padEnd(8)}trunk  1           ${Object.keys(d.vlans).join(',')}`)]:['Aucun port en mode trunk.']}}
+ return[inv]}
+function run(d,raw){d.out.push(ps1(d)+' '+raw);const t=raw.trim();if(!t)return;
+ if(/^(cls|clear)$/i.test(t)){d.out=[];return}
+ const a=t.split(/\s+/),c=a[0].toLowerCase();
+ d.out.push(...(isH(d)?pcCmd(d,a,c):netCmd(d,a,c)));d.out=d.out.slice(-150)}
+/* ===== INTERFACE ===== */
+const ui={sel:null,tool:null,from:null,tab:'lab',vr:'',open:false,dh:false,ln:null,v:{cx:180,cy:200,s:1}},K='trame:v1',msg=t=>{const m=$('#msg');m.textContent=String(t).replace(/^⚠\s*/,'');m.classList.toggle('bad',/^⚠/.test(t));return t};
+function connect(a,b){if(a===b)return msg('Choisissez deux équipements différents');
+ const free=d=>d.ifs.findIndex((_,i)=>!S.links.some(l=>(l[0]===d.id&&l[1]===i)||(l[2]===d.id&&l[3]===i))),i=free(a),j=free(b);
+ if(i<0||j<0)return msg('Aucun port libre sur '+(i<0?a.name:b.name));
+ S.links.push([a.id,i,b.id,j]);msg(`${a.name} ${a.ifs[i].n} ↔ ${b.name} ${b.ifs[j].n}`)}
+function add(t){const n=S.devs.filter(d=>d.type===t).length+1,i=S.devs.length;
+ ui.sel=mk(t,{pc:'PC',sw:'SW',rt:'R',sv:'SRV'}[t]+n,ui.v.cx+((i%5)-2)*60,ui.v.cy+(Math.floor(i/5)%3-1)*80).id;ui.tab='cfg';ui.dh=false;ui.open=true}
+function example(){S=blank();S.lab='r';ui.sel=null;
+ const[p1,s1,r,s2,p2]=[['pc','PC1',50,80],['sw','SW1',110,190],['rt','R1',180,290],['sw','SW2',250,190],['pc','PC2',310,80]].map(a=>mk(...a));
+ [[p1,s1],[s1,r],[r,s2],[s2,p2]].forEach(([a,b])=>connect(a,b));
+ [[p1,1],[p2,2]].forEach(([p,k])=>{const e=p.ifs[0];e.ip=`192.168.${k}.10`;e.mask='255.255.255.0';p.gw=`192.168.${k}.1`});
+ ui.tab='lab';ui.vr='';fit();msg('Labo chargé : R1 n’est pas configuré')}
+function exampleV(){S=blank();S.lab='v';ui.sel=null;
+ const[p1,p2,p3,p4,s1,s2,r]=[['pc','PC1',50,60],['pc','PC2',130,60],['pc','PC3',230,60],['pc','PC4',310,60],['sw','SW1',90,170],['sw','SW2',270,170],['rt','R1',180,300]].map(a=>mk(...a));
+ [[p1,s1],[p2,s1],[p3,s2],[p4,s2],[s1,s2],[r,s1],[r,s2]].forEach(([a,b])=>connect(a,b));
+ [[p1,10,11],[p3,10,12],[p2,20,11],[p4,20,12]].forEach(([p,v,h])=>{const e=p.ifs[0];e.ip=`192.168.${v}.${h}`;e.mask='255.255.255.0';p.gw=`192.168.${v}.1`});
+ ui.tab='lab';ui.vr='';fit();msg('Labo VLAN chargé : tout est encore dans le VLAN 1')}
+const LABS={r:{t:'Labo 1 · Routage entre deux réseaux',o:`<p><b>Objectif :</b> faire communiquer PC1 (192.168.1.10) et PC2 (192.168.2.10) à travers R1, qui n’a encore aucune adresse et dont les interfaces sont éteintes.</p><p>Touchez R1 : l’onglet Config règle ses interfaces (adresse, masque, activation), ses routes et son DHCP sans commande ; le terminal reste disponible (<code>enable</code>, <code>show ip interface brief</code>…). Défi : activez un serveur DHCP sur l’interface du réseau de PC1 (début 192.168.1.100), puis passez PC1 en DHCP. Chaque ping s’affiche pas à pas dans l’onglet Trace.</p>`,tests:[['PC1','PC2']]},
+ v:{t:'Labo 2 · VLAN, trunk et routage inter-VLAN',o:`<p><b>Objectif :</b> deux VLAN répartis sur deux switches. VLAN 10 : PC1 (SW1 Fa0/1), PC3 (SW2 Fa0/1) et R1 Gi0/0 (SW1 Fa0/4). VLAN 20 : PC2 (SW1 Fa0/2), PC4 (SW2 Fa0/2) et R1 Gi0/1 (SW2 Fa0/4). Le lien SW1 Fa0/3 ↔ SW2 Fa0/3 doit devenir un trunk.</p><p>À faire : créer les VLAN 10 et 20 sur <b>chaque</b> switch (onglet Config du switch ou commande <code>vlan 10</code>), affecter les ports, passer les deux extrémités du lien en trunk, puis configurer R1 (Gi0/0 = 192.168.10.1/24, Gi0/1 = 192.168.20.1/24, interfaces activées). Les PC sont déjà réglés. Testez PC1 → PC3 (même VLAN, à travers le trunk) puis PC1 → PC2 (inter-VLAN, via R1).</p>`,tests:[['PC1','PC3'],['PC2','PC4'],['PC1','PC2']]}};
+const lab=()=>{const L=LABS[S.lab],g=S.dbg||{tries:0,hints:0,done:0};return(L?`<p><b>${L.t}</b></p>${L.o}${L.h?dbgHtml(L,g):''}<button data-a='chk'>Valider avec de vrais pings</button><div class='vr'>${ui.vr.split('\n').filter(Boolean).map(l=>`<div class='${l[0]==='✓'?'ok':l[0]==='✗'?'er':''}'>${esc(l)}</div>`).join('')}</div>${L.h&&g.done?causeHtml(L,g):''}`:'<p>Aucun labo guidé chargé : vous travaillez sur votre propre réseau.</p>')+`<div class='bx'><b>Labos guidés</b><div class='g2'><button data-a='ex1'>1 · Routage</button><button data-a='ex2'>2 · VLAN</button><button data-a='ex3'>3 · DNS et web</button></div></div><div class='bx'><b>Dépannage</b> <small>une panne reproductible par scénario</small><div class='g2'>${depBtns()}</div></div>`};
+/* ===== DÉPANNAGE (pannes reproductibles) ET HISTORIQUE ===== */
+const gd=n=>S.devs.find(d=>d.name===n);
+function cfgR(){const r=gd('R1');[[0,'192.168.1.1'],[1,'192.168.2.1']].forEach(([i,ip])=>{setIf(r,r.ifs[i],ip,'255.255.255.0');r.ifs[i].up=true})}
+function cfgV(){const a=gd('SW1'),b=gd('SW2'),r=gd('R1');[a,b].forEach(s=>{addVlan(s,10,'Ventes');addVlan(s,20,'Compta')});
+ [[a,0,10],[a,1,20],[a,3,10],[b,0,10],[b,1,20],[b,3,20]].forEach(([s,i,v])=>setPort(s,i,null,v));setPort(a,2,'trunk',null);setPort(b,2,'trunk',null);
+ [[0,'192.168.10.1'],[1,'192.168.20.1']].forEach(([i,ip])=>{setIf(r,r.ifs[i],ip,'255.255.255.0');r.ifs[i].up=true})}
+function exampleS(){S=blank();S.lab='s';ui.sel=null;
+ const[p1,r1,r2,p2]=[['pc','PC1',50,150],['rt','R1',140,150],['rt','R2',230,150],['pc','PC2',320,150]].map(a=>mk(...a));
+ [[p1,r1],[r1,r2],[r2,p2]].forEach(([a,b])=>connect(a,b));
+ [[r1,0,'10.0.1.1','255.255.255.0'],[r1,1,'10.0.12.1','255.255.255.252'],[r2,0,'10.0.12.2','255.255.255.252'],[r2,1,'10.0.2.1','255.255.255.0']].forEach(([r,i,ip,m])=>{setIf(r,r.ifs[i],ip,m);r.ifs[i].up=true});
+ setHost(p1,'10.0.1.2','255.255.255.0','10.0.1.1','');setHost(p2,'10.0.2.2','255.255.255.0','10.0.2.1','');
+ addRoute(r1,'10.0.2.0','255.255.255.0','10.0.12.2');addRoute(r2,'10.0.1.0','255.255.255.0','10.0.12.1')}
+const TT=[['PC1','PC2'],['PC2','PC1']],TV=[['PC1','PC3'],['PC2','PC4'],['PC1','PC2']];
+const dep=(k,t,o,tests,b,h,c)=>{LABS[k]={t:'Dépannage · '+t,o:`<p><b>Symptôme :</b> ${o}</p><p><small>Diagnostiquez avec ping, ipconfig, les commandes show et l’onglet Trace, puis corrigez dans Config ou au terminal. Le panneau de cohérence est masqué dans ce mode.</small></p>`,tests,h,c,b}};
+dep('d1','Mauvais masque','PC1 envoie sa requête à PC2, mais aucune réponse ne revient ; dans l’autre sens, PC2 n’atteint pas PC1.',TT,()=>{example();cfgR();gd('PC2').ifs[0].mask='255.255.0.0'},
+ ['Comparez les deux sens : où chaque ping échoue-t-il ? Lisez bien la cause affichée.','L’échec parle d’un ARP sans réponse sur PC2 pour une adresse qui devrait être derrière le routeur. Comparez ipconfig sur PC1 et sur PC2.','PC2 a le masque 255.255.0.0 au lieu de 255.255.255.0 : il croit PC1 sur son propre réseau.'],
+ 'Avec un masque /16, PC2 considère toute adresse 192.168.x.x comme voisine directe : il envoie un ARP au lieu de passer par sa passerelle. La requête de PC1 arrive, mais la réponse ne revient jamais. Correction : masque 255.255.255.0 sur PC2.');
+dep('d2','Passerelle incorrecte','PC1 ne joint aucun PC d’un autre réseau, alors que sa configuration paraît complète.',TT,()=>{example();cfgR();gd('PC1').gw='192.168.1.254'},
+ ['Le ping échoue dès la première étape. Ouvrez l’onglet Trace pour voir sur quelle adresse PC1 envoie son ARP.','PC1 cherche son routeur à une adresse précise. Comparez-la avec l’adresse de R1 sur ce réseau (show ip interface brief sur R1).','PC1 a pour passerelle 192.168.1.254, alors que R1 a 192.168.1.1.'],
+ 'Une passerelle doit être l’adresse réelle du routeur sur le réseau local. Personne ne répond à 192.168.1.254 : l’ARP reste sans réponse et le paquet ne quitte jamais le réseau. Correction : passerelle 192.168.1.1 sur PC1.');
+dep('d3','Interface désactivée','PC1 joint son routeur mais pas PC2, dont la configuration est correcte.',TT,()=>{example();cfgR();gd('R1').ifs[1].up=false},
+ ['Essayez ping 192.168.1.1 depuis PC1. Si cela marche, le problème est plus loin : concentrez-vous sur R1.','Sur R1, lancez show ip interface brief : toutes les interfaces utiles sont-elles actives ?','L’interface Gi0/1 de R1 est désactivée (administrativement down).'],
+ 'Une interface désactivée (shutdown) ne participe plus au routage : R1 n’a plus de route vers 192.168.2.0/24. Correction : no shutdown sur Gi0/1 (bouton Activer dans Config).');
+dep('d4','Route manquante','PC1 envoie ses paquets vers PC2 à travers deux routeurs ; le paquet semble partir mais aucune réponse n’arrive.',TT,()=>{exampleS();gd('R2').routes=[]},
+ ['Lisez la cause : elle indique quel équipement ne sait pas où envoyer un paquet. Pensez au chemin du retour.','Chaque routeur doit connaître le réseau situé de l’autre côté. Comparez show ip route sur R1 et sur R2.','R2 n’a aucune route vers 10.0.1.0/24 : la réponse de PC2 ne peut pas revenir.'],
+ 'Le routage doit exister dans les deux sens. R1 sait aller vers PC2, mais R2 ne connaît pas le réseau 10.0.1.0/24 : la réponse est abandonnée. Correction : route statique 10.0.1.0/24 via 10.0.12.1 sur R2.');
+dep('d5','Mauvais VLAN','PC1 atteint PC2 (autre VLAN, via R1) et PC2 atteint PC4, mais PC1 n’atteint plus PC3, censé être dans le même VLAN.',TV,()=>{exampleV();cfgV();setPort(gd('SW2'),0,null,20)},
+ ['Seul PC3 est injoignable : examinez son switch (SW2) et le port auquel il est branché.','Dans quel VLAN est le port de PC3 ? Comparez avec le VLAN de PC1 (show vlan brief ou onglet Config).','Le port Fa0/1 de SW2 est dans le VLAN 20 au lieu du VLAN 10.'],
+ 'Un port access appartient à un seul VLAN : PC3, placé dans le VLAN 20, n’entend plus les diffusions du VLAN 10, donc l’ARP de PC1 reste sans réponse. Correction : Fa0/1 de SW2 dans le VLAN 10.');
+dep('d6','Trunk mal configuré','Tout fonctionne entre PC d’un même switch, mais plus rien ne traverse d’un switch à l’autre.',TV,()=>{exampleV();cfgV();setPort(gd('SW2'),2,'access',null)},
+ ['Le point commun des échecs est le lien entre SW1 et SW2. Ouvrez la Trace pour voir où la trame s’arrête.','Un trunk doit être configuré aux deux extrémités. Vérifiez le mode des ports Fa0/3 de SW1 et de SW2.','Fa0/3 de SW2 est en mode access alors que Fa0/3 de SW1 est en trunk.'],
+ 'SW1 envoie des trames étiquetées 802.1Q sur le lien, mais SW2 les reçoit sur un port access et les rejette. Correction : switchport mode trunk sur Fa0/3 de SW2.');
+dep('d7','DHCP défaillant','PC1 est réglé en DHCP mais n’obtient aucune adresse : ipconfig affiche une configuration vide.',TT,()=>{example();cfgR();const p=gd('PC1'),r=gd('R1');p.ifs[0].ip='';p.ifs[0].mask='';p.gw='';p.dh=true;setDhcp(r,r.ifs[1],1,'192.168.2.100',10,'')},
+ ['Relancez la demande sur PC1 (Config → DHCP, ou ipconfig /renew), puis lisez la cause et la Trace : la demande part-elle ? Qui répond ?','Ici le serveur DHCP est un routeur, interface par interface. Vérifiez sur quelle interface de R1 le DHCP est activé.','Le DHCP est activé sur Gi0/1 (réseau de PC2), pas sur Gi0/0 (réseau de PC1).'],
+ 'Une requête DHCP Discover reste dans son réseau local : seul un serveur présent sur ce réseau peut répondre. Le pool de R1 est sur le mauvais réseau, donc personne ne répond à PC1. Correction : activer le DHCP sur Gi0/0 (début 192.168.1.100), puis redemander une adresse.');
+dep('d8','Câble débranché','Rien ne passe entre les deux réseaux, alors que toutes les adresses semblent correctes.',TT,()=>{example();cfgR();S.links.splice(1,1)},
+ ['Le ping échoue dès l’ARP vers la passerelle. Regardez la carte : tous les équipements sont-ils reliés ?','Suivez le chemin PC1 → SW1 → R1 : manque-t-il un câble ?','Le câble entre SW1 et R1 est débranché : reliez-les avec l’outil Câble.'],
+ 'Sans câble, la trame ne peut pas atteindre R1 : l’ARP de PC1 vers sa passerelle reste sans réponse. Correction : relier SW1 et R1 avec l’outil Câble. Un lien physique manquant est l’une des pannes les plus courantes.');
+function loadLab(id){const L=LABS[id];if(L&&L.b)exampleD(id);else if(id==='v')exampleV();else if(id==='w')exampleW(0);else example()}
+function exampleD(id){const L=LABS[id];L.b();S.lab=id;S.dbg={tries:0,hints:0,done:0};ui.sel=null;ui.ln=null;ui.tab='lab';ui.open=true;ui.vr='';fit();msg(L.t+' : trouvez la panne')}
+const dbgHtml=(L,g)=>`<p><small>Tentatives de validation : ${g.tries} · Indices utilisés : ${g.hints}/3</small></p>${L.h.slice(0,g.hints).map((h,i)=>`<div class='bx'><b>Indice ${i+1}</b> ${esc(h)}</div>`).join('')}<div class='g2'><button data-a='hint'${g.hints>=3||g.done?' disabled':''}>Indice suivant</button><button data-a='dgv'${g.done?' disabled':''}>Voir la cause</button></div>`;
+const causeHtml=(L,g)=>`<div class='bx'><b class='${g.done===1?'ok':'wn'}'>${g.done===1?'Panne résolue !':'Cause révélée'}</b><br>${esc(L.c)}</div>`;
+const depBtns=()=>Object.keys(LABS).filter(k=>LABS[k].h).map(k=>`<button data-a='dl' data-i='${k}'>${LABS[k].t.replace('Dépannage · ','')}</button>`).join('');
+function lnHtml(l){const a=dv(l[0]),b=dv(l[2]),x=a.ifs[l[1]],y=b.ifs[l[3]],ok=x.up&&y.up;
+ return`<p class='er' id='er'></p><b>Câble</b> <small>${esc(a.name)} ${x.n} ↔ ${esc(b.name)} ${y.n}</small><div class='bx'><b class='${ok?'ok':'er'}'>● ${ok?'liaison active':'liaison inactive'}</b><br><small>${ok?'Les deux extrémités sont activées.':(x.up?'':`${esc(a.name)} ${x.n} est désactivée. `)+(y.up?'':`${esc(b.name)} ${y.n} est désactivée.`)}</small></div><button data-a='rmlink'>Supprimer ce câble</button> <small>Les équipements restent en place ; vous pouvez les relier de nouveau avec l’outil Câble.</small>`}
+let HIS=[],RED=[],CUR='';
+const snapshot=()=>JSON.stringify({lab:S.lab,devs:S.devs.map(d=>({id:d.id,type:d.type,name:d.name,x:Math.round(d.x),y:Math.round(d.y),gw:d.gw||'',dns:d.dns||'',dh:!!d.dh,routes:d.routes||[],vlans:d.vlans||{},svc:d.svc||null,ifs:d.ifs.map(x=>({ip:x.ip||'',mask:x.mask||'',up:!!x.up,mode:x.mode||'access',vlan:x.vlan||1,dhcp:x.dhcp?{start:x.dhcp.start,n:x.dhcp.n,dns:x.dhcp.dns||''}:null}))})),links:S.links});
+function commit(){const s=snapshot();if(s===CUR)return;if(CUR){HIS.push(CUR);if(HIS.length>60)HIS.shift()}CUR=s;RED=[]}
+function restore(s){const old=S.devs,dbg=S.dbg,sel=ui.sel;useProject(JSON.parse(s),1);S.dbg=dbg;S.devs.forEach(d=>{const o=old.find(x=>x.id===d.id);if(o){d.out=o.out;d.mode=o.mode;d.cur=o.cur}});ui.sel=S.devs.some(d=>d.id===sel)?sel:null;ui.ln=null}
+const undo=()=>{if(!HIS.length)return msg('Rien à annuler');RED.push(CUR);CUR=HIS.pop();restore(CUR);return msg('Action annulée')},
+ redo=()=>{if(!RED.length)return msg('Rien à rétablir');HIS.push(CUR);CUR=RED.pop();restore(CUR);return msg('Action rétablie')};
+const browseHtml=d=>`<div class='bx'><b>Navigateur web</b> <small>ouvre une page comme un client : résolution DNS (UDP 53) puis connexion TCP sur le port 80.</small><div class='g2'><input id='wu' placeholder='http://www.netlab.lan' value='${esc(ui.wu||'')}'><button data-a='web'>Ouvrir</button></div><pre>${esc(ui.wr||'')}</pre></div>`;
+function svHtml(d){const s=d.svc,rec=Object.keys(s.dns.rec).map(k=>`<tr><td>${esc(k)}</td><td>${s.dns.rec[k]}</td><td><button data-a='ddel' data-i='${esc(k)}'>✕</button></td></tr>`).join('');
+ return pcHtml(d)+`<div class='bx'><b>Service DNS</b> <button data-a='sdns' class='${s.dns.on?'on':''}'>${s.dns.on?'Activé':'Désactivé'}</button><br><small>Un serveur DNS traduit un nom (www.netlab.lan) en adresse IP : le client l’interroge en UDP, port 53. Activez le service puis enregistrez les noms.</small><table>${rec||'<tr><td>Aucun enregistrement.</td></tr>'}</table><div class='g3'><input id='dn' placeholder='www.netlab.lan'><input id='di' placeholder='Adresse IPv4'><button data-a='dadd'>Ajouter</button></div></div><div class='bx'><b>Service Web (HTTP)</b> <button data-a='sweb' class='${s.web.on?'on':''}'>${s.web.on?'Activé':'Désactivé'}</button><br><small>Le client ouvre une connexion TCP sur le port 80 (SYN, SYN-ACK, ACK) puis demande la page (GET).</small><input id='wp' value='${esc(s.web.page)}' maxlength='160'><button data-a='wsave'>Enregistrer la page</button></div>`}
+function exampleW(full){S=blank();S.lab='w';ui.sel=null;
+ const[p1,s1,r,s2,sv]=[['pc','PC1',50,80],['sw','SW1',110,190],['rt','R1',180,290],['sw','SW2',250,190],['sv','SRV1',310,80]].map(a=>mk(...a));
+ [[p1,s1],[s1,r],[r,s2],[s2,sv]].forEach(([a,b])=>connect(a,b));
+ setHost(p1,'192.168.1.10','255.255.255.0','192.168.1.1','');setHost(sv,'192.168.2.53','255.255.255.0','192.168.2.1','');cfgR();
+ if(full){p1.dns='192.168.2.53';sv.svc.dns.on=true;sv.svc.dns.rec['www.netlab.lan']='192.168.2.53';sv.svc.web.on=true}
+ ui.tab='lab';ui.vr='';fit();msg('Labo DNS et web chargé : les services de SRV1 sont arrêtés')}
+LABS.w={t:'Labo 3 · DNS et serveur web',o:`<p><b>Objectif :</b> depuis PC1, ouvrir la page http://www.netlab.lan hébergée sur SRV1 (192.168.2.53). Le réseau, routeur compris, est déjà configuré : il manque les services.</p><p>À faire : sur SRV1, activer le service DNS et y enregistrer <code>www.netlab.lan</code> → 192.168.2.53, puis activer le service Web. Sur PC1, renseigner le serveur DNS 192.168.2.53. Testez <code>nslookup www.netlab.lan</code>, <code>ping www.netlab.lan</code> et <code>curl www.netlab.lan</code> (ou le navigateur de l’onglet Config), puis lisez la Trace : requête UDP 53, puis SYN, SYN-ACK, ACK et GET en TCP.</p>`,tests:[['PC1','http://www.netlab.lan']]};
+dep('d9','DNS incorrect','PC1 joint SRV1 par son adresse IP, mais ouvrir http://www.netlab.lan échoue.',[['PC1','SRV1'],['PC1','http://www.netlab.lan']],()=>{exampleW(1);gd('PC1').dns='192.168.2.35'},
+ ['Pinguez SRV1 par son adresse IP, puis par son nom : où la différence apparaît-elle ?','Si l’adresse répond mais pas le nom, le problème est la résolution : lancez nslookup www.netlab.lan et lisez la cause.','PC1 interroge le serveur DNS 192.168.2.35, alors que SRV1 est en 192.168.2.53 : deux chiffres sont inversés.'],
+ 'Un nom n’est traduit que si le client interroge le bon serveur DNS. Ici l’adresse DNS de PC1 est fausse : la requête UDP 53 part dans le vide, alors que le réseau fonctionne. Correction : DNS 192.168.2.53 sur PC1.');
+dep('d10','Service web arrêté','Le nom www.netlab.lan est résolu et SRV1 répond au ping, mais la page ne s’ouvre pas.',[['PC1','http://www.netlab.lan']],()=>{exampleW(1);gd('SRV1').svc.web.on=false},
+ ['La résolution et le ping passent : le problème est plus haut que le réseau. Regardez la fin de la Trace.','La réponse TCP est un RST : personne n’écoute sur le port 80. Ouvrez la configuration de SRV1.','Le service Web de SRV1 est désactivé.'],
+ 'TCP ne s’établit que si un service écoute sur le port demandé : sans service web actif, SRV1 répond RST (connexion refusée) alors que l’adresse, la route et le DNS sont corrects. Correction : activer le service Web sur SRV1.');
+const pack=()=>JSON.stringify({app:'Trame',format:'netlab-project',version:2,exported:new Date().toISOString(),project:{...S,ev:[],step:-1}},null,1);
+function useProject(p,keep){const ok=s=>typeof s==='string'&&okIp(s)?s:'',okM=s=>typeof s==='string'&&okMask(s)?s:'',ids=new Set(),I=(v,a,b,z)=>Number.isInteger(+v)&&+v>=a&&+v<=b?+v:z;
+ S=blank();if(LABS[p.lab])S.lab=p.lab;if(p.dbg&&typeof p.dbg==='object')S.dbg={tries:I(p.dbg.tries,0,999,0),hints:I(p.dbg.hints,0,3,0),done:I(p.dbg.done,0,2,0)};
+ (p.devs||[]).slice(0,60).forEach(o=>{if(!o||!['pc','sw','rt','sv'].includes(o.type)||!Array.isArray(o.ifs)||!Number.isInteger(o.id)||o.id<1||ids.has(o.id))return;
+  ids.add(o.id);S.n=o.id-1;
+  const d=mk(o.type,String(o.name||'').replace(/[^\w-]/g,'').slice(0,24)||o.type.toUpperCase()+o.id,Math.max(-3000,Math.min(3000,+o.x||0)),Math.max(-3000,Math.min(3000,+o.y||0)));
+  d.gw=ok(o.gw);d.dns=ok(o.dns);d.dh=isH(o)&&!!o.dh;
+  if(o.type==='sv'&&o.svc){const q=o.svc,dn=q.dns||{},wb=q.web||{};d.svc.dns.on=!!dn.on;Object.keys(dn.rec||{}).slice(0,30).forEach(k=>{if(/^[a-z0-9]([a-z0-9.-]{0,60}[a-z0-9])?$/.test(k)&&okIp(String(dn.rec[k])))d.svc.dns.rec[k]=dn.rec[k]});d.svc.web.on=!!wb.on;if(typeof wb.page==='string'&&wb.page.trim())d.svc.web.page=wb.page.slice(0,160)}
+  d.routes=(Array.isArray(o.routes)?o.routes:[]).filter(r=>r&&okIp(r.n||'')&&okMask(r.m||'')&&okIp(r.v||'')).map(r=>({n:r.n,m:r.m,v:r.v}));
+  if(o.type==='sw'&&o.vlans&&typeof o.vlans==='object')Object.keys(o.vlans).forEach(k=>{const v=I(k,1,4094,0);if(v&&/^[\w-]{1,32}$/.test(String(o.vlans[k])))d.vlans[v]=String(o.vlans[k])});
+  d.ifs.forEach((x,i)=>{const q=o.ifs[i]||{};x.mask=okM(q.mask);x.ip=x.mask?ok(q.ip):'';if(!x.ip)x.mask='';if(q.up!==undefined)x.up=!!q.up;
+   if(o.type==='sw'){x.mode=q.mode==='trunk'?'trunk':'access';x.vlan=I(q.vlan,1,4094,1)}
+   if(o.type==='rt'&&q.dhcp&&x.ip&&okIp(String(q.dhcp.start||''))&&I(q.dhcp.n,1,250,0))x.dhcp={start:q.dhcp.start,n:+q.dhcp.n,dns:ok(q.dhcp.dns),leases:{}}})});
+ S.n=Math.max(0,...ids);const used=new Set();
+ (p.links||[]).forEach(l=>{if(!Array.isArray(l)||l.length!==4)return;const[a,i,b,j]=l,x=dv(a),y=dv(b);
+  if(![a,i,b,j].every(Number.isInteger)||!x||!y||a===b||!x.ifs[i]||!y.ifs[j]||used.has(a+'.'+i)||used.has(b+'.'+j))return;used.add(a+'.'+i);used.add(b+'.'+j);S.links.push([a,i,b,j])});
+ if(!keep){ui.sel=null;ui.dh=false;fit()}}
+const CH={sv:['ipconfig','ip 192.168.2.53 255.255.255.0 192.168.2.1','nslookup www.netlab.lan','curl www.netlab.lan','help'],pc:['ipconfig','ip 192.168.1.10 255.255.255.0 192.168.1.1','arp -a','ping 192.168.2.10','nslookup www.netlab.lan','curl www.netlab.lan','help'],sw:['enable','conf t','vlan 10','interface fa0/1','switchport access vlan 10','show vlan brief','show mac address-table','help'],rt:['enable','conf t','interface g0/0','ip address 192.168.1.1 255.255.255.0','no shutdown','end','show ip interface brief','show ip route','help']};
+const EM=(a,b)=>`<div class='empty'><b>${a}</b>${b}</div>`;
+function panel(){const T=$('#tab'),d=dv(ui.sel);
+ $('#tabs').innerHTML=[['cfg','Config'],['term','Terminal'],['trace','Trace'],['lab','Labo']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" data-k="${k}" class="${ui.tab===k?'on':''}">${l}</button>`).join('')+`<button data-a="tg" class="tgl" aria-label="${ui.open?'Réduire':'Agrandir'} le panneau"><svg class="ic"><use href="#u-${ui.open?'dn':'up'}"/></svg></button>`;$('#pan').className=ui.open?'open':'';
+ if(ui.tab==='cfg'){T.innerHTML=cfgHtml(d);return}
+ if(ui.tab==='term'){
+  if(!d){T.innerHTML=EM('Aucun équipement sélectionné','Touchez un équipement du schéma pour ouvrir son terminal.');return}
+  T.innerHTML=`<div class="cli"><pre>${esc(d.out.join('\n'))}</pre><div class="ch">${CH[d.type].map(c=>`<button data-c="${esc(c)}">${esc(c.length>18?c.slice(0,16)+'…':c)}</button>`).join('')}</div><div class="r"><label>${esc(ps1(d))}</label><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" enterkeyhint="send"></div></div>`;T.scrollTop=1e5}
+ else if(ui.tab==='trace'){
+  T.innerHTML=`<div class="r tr"><button data-a="p" aria-label="Étape précédente"><svg class="ic"><use href="#u-prev"/></svg></button><button data-a="n" aria-label="Étape suivante"><svg class="ic"><use href="#u-next"/></svg></button><button data-a="pl"><svg class="ic"><use href="#u-play"/></svg>Lecture</button><span>${S.ev.length?`${S.step+1}/${S.ev.length}`:'—'}</span></div>`+(S.ev.length?S.ev.map((e,i)=>`<div class="e k-${e.k}${i===S.step?' h':''}"><b>${{arp:'ARP',ip:'IP',tcp:'TCP',udp:'UDP',i:'ÉTAT',x:'ÉCHEC'}[e.k]}</b> ${esc(e.t)}</div>`).join(''):EM('Aucune trace','Lancez un ping depuis un terminal : trames Ethernet, paquets IP et causes d’échec s’affichent ici.'));
+  const h=T.querySelector('.h');if(h)h.scrollIntoView({block:'nearest'})}
+ else T.innerHTML=lab()}
+function draw(){const E=S.ev[S.step];
+ let h=`<defs><pattern id="gr" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" class="gl"/></pattern></defs><rect x="-4000" y="-4000" width="8000" height="8000" fill="url(#gr)"/>`;
+ S.links.forEach((l,li)=>{const a=dv(l[0]),b=dv(l[2]),ok=a.ifs[l[1]].up&&b.ifs[l[3]].up,hot=E&&((E.a===a.id&&E.b===b.id)||(E.a===b.id&&E.b===a.id));
+  h+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="lk${hot?' hot':li===ui.ln?' sel':ok?'':' dn'}"/><line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" class="hit" data-l="${li}"/>${pdot(a,b,ok)}${pdot(b,a,ok)}`});
+ S.devs.forEach(d=>{const s=d.id===ui.sel;
+  h+=`<g data-id="${d.id}" class="nd ${d.type}${s?' sel':''}" transform="translate(${d.x},${d.y})"><rect class="halo" x="-31" y="-31" width="62" height="62" rx="11"/><rect class="tile" x="-28" y="-28" width="56" height="56" rx="8"/><use href="#i-${d.type}" x="-22" y="-22" width="44" height="44"/><text y="46" text-anchor="middle" class="nl">${esc(d.name)}</text>${sub(d)}</g>`});
+ $('#sv').innerHTML=h}
+function render(){draw();panel();$('#lk').classList.toggle('on',!!ui.tool);$('#del').disabled=ui.sel==null;commit()}
+function tap(d){const lk=ui.tool;
+ if(ui.tool==='link'){if(ui.from){connect(ui.from,d);ui.from=null;ui.tool=null}else{ui.from=d;msg('Touchez le 2e équipement')}}
+ ui.sel=d.id;ui.ln=null;ui.wr='';ui.wu='';ui.dh=!!d.dh;if(ui.tab==='lab')ui.tab='cfg';if(!lk)ui.open=true;render()}
+const pt=e=>{const v=$('#sv'),p=v.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(v.getScreenCTM().inverse())};
+let drag,tm;const V=$('#sv');
+const P=new Map(),clampS=s=>Math.max(.25,Math.min(4,s));let G=null,TL=null;
+const mid=()=>{const a=[...P.values()],b=a[1]||a[0];return{x:(a[0].x+b.x)/2,y:(a[0].y+b.y)/2,d:Math.hypot(a[0].x-b.x,a[0].y-b.y)||1}};
+function applyView(){const r=V.getBoundingClientRect(),v=ui.v;if(!r.width)return;const w=r.width/v.s,h=r.height/v.s;V.setAttribute('viewBox',`${v.cx-w/2} ${v.cy-h/2} ${w} ${h}`)}
+function anchor(p,x,y,s){const r=V.getBoundingClientRect();ui.v={cx:p.x-(x-r.left-r.width/2)/s,cy:p.y-(y-r.top-r.height/2)/s,s};applyView()}
+function fit(){const r=V.getBoundingClientRect(),D=S.devs;if(!D.length||!r.width){ui.v={cx:180,cy:200,s:1};return applyView()}
+ const x0=Math.min(...D.map(d=>d.x))-50,x1=Math.max(...D.map(d=>d.x))+50,y0=Math.min(...D.map(d=>d.y))-50,y1=Math.max(...D.map(d=>d.y))+70;
+ ui.v={cx:(x0+x1)/2,cy:(y0+y1)/2,s:clampS(Math.min(r.width/(x1-x0),r.height/(y1-y0),1.5))};applyView()}
+const gest=()=>{const m=mid();G={p:pt({clientX:m.x,clientY:m.y}),s:ui.v.s,d:m.d}};
+V.onpointerdown=e=>{P.set(e.pointerId,{x:e.clientX,y:e.clientY});V.setPointerCapture(e.pointerId);const g=e.target.closest('g[data-id]');
+ const lk=e.target.closest('[data-l]');
+ if(P.size===1&&g){const d=dv(g.dataset.id),p=pt(e);drag={d,x:e.clientX,y:e.clientY,m:0,ox:d.x-p.x,oy:d.y-p.y};G=null;TL=null}else{drag=null;gest();TL=P.size===1&&lk?{i:+lk.dataset.l,x:e.clientX,y:e.clientY,m:0}:null}};
+V.onpointermove=e=>{if(!P.has(e.pointerId))return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});if(TL&&Math.hypot(e.clientX-TL.x,e.clientY-TL.y)>8)TL.m=1;
+ if(drag){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8)drag.m=1;if(drag.m){const p=pt(e);drag.d.x=p.x+drag.ox;drag.d.y=p.y+drag.oy;draw()}}
+ else if(G){const m=mid();anchor(G.p,m.x,m.y,P.size>1?clampS(G.s*m.d/G.d):ui.v.s)}};
+V.onpointerup=V.onpointercancel=e=>{P.delete(e.pointerId);if(drag&&!drag.m&&e.type==='pointerup')tap(drag.d);if(drag&&drag.m)commit();if(TL&&!TL.m&&e.type==='pointerup'){ui.ln=TL.i;ui.sel=null;ui.tab='cfg';ui.open=true;render()}TL=null;drag=null;if(P.size)gest();else G=null};
+V.addEventListener('wheel',e=>{e.preventDefault();anchor(pt(e),e.clientX,e.clientY,clampS(ui.v.s*Math.exp(-e.deltaY*.0015)))},{passive:false});
+if(window.ResizeObserver)new ResizeObserver(applyView).observe(V);
+const go=k=>{S.step=Math.max(-1,Math.min(S.ev.length-1,k));render()};
+const A={pc:()=>add('pc'),sv:()=>add('sv'),sw:()=>add('sw'),rt:()=>add('rt'),ex:()=>loadLab(S.lab),ex1:()=>example(),ex2:()=>exampleV(),ex3:()=>exampleW(0),
+ link:()=>{ui.tool=ui.tool?null:'link';ui.from=null;msg(ui.tool?'Touchez deux équipements à relier':'')},
+ del:()=>{const d=dv(ui.sel);if(!d)return msg('Sélectionnez un équipement');S.links=S.links.filter(l=>l[0]!==d.id&&l[2]!==d.id);S.devs=S.devs.filter(x=>x!==d);ui.sel=null;ui.ln=null},
+ new:()=>{S=blank();ui.sel=null;fit();msg('Réseau vierge')},
+ save:()=>{try{localStorage.setItem(K,JSON.stringify({...S,ev:[]}));msg('Projet enregistré sur cet appareil')}catch(e){msg('Stockage indisponible')}},
+ load:()=>{try{const j=JSON.parse(localStorage.getItem(K)||localStorage.getItem('netlab-ai:v1'));if(!j)return msg('Aucun projet enregistré');useProject(j);msg('Projet chargé')}catch(e){msg('Chargement impossible')}},
+ p:()=>go(S.step-1),n:()=>go(S.step+1),
+ pl:()=>{clearInterval(tm);S.step=-1;tm=setInterval(()=>{if(S.step>=S.ev.length-1)return clearInterval(tm);go(S.step+1)},700)},
+ chk:()=>{const L=LABS[S.lab];
+  if(!L)return ui.vr='Chargez d’abord un labo guidé.';
+  ui.vr=L.tests.map(([x,y])=>{const a=S.devs.find(d=>d.name===x),w=/^http:/.test(y),b=S.devs.find(d=>d.name===y);if(!a||(!b&&!w))return`${x} → ${y} : équipement absent`;const r=w?browse(a,y):ping(a,b.ifs[0].ip);S.ev=r.ev;S.step=-1;return r.ok?`✓ ${x} → ${y} : réussi${r.ttl?` (TTL ${r.ttl})`:''}`:`✗ ${x} → ${y} : ${r.why}`}).join('\n');if(L.h){const g=S.dbg||(S.dbg={tries:0,hints:0,done:0});g.tries++;if(!/✗/.test(ui.vr)&&g.done!==2)g.done=1}}};
+/* ===== PANNEAU DE CONFIGURATION (les formulaires écrivent dans le modèle du moteur) ===== */
+
+function pdot(a,b,ok){const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1;return`<circle cx='${a.x+dx/L*36}' cy='${a.y+dy/L*36}' r='3.5' class='pd${ok?'':' dn'}'/>`}
+const sub=d=>isH(d)&&d.ifs[0].ip?`<text y='58' text-anchor='middle' class='ns'>${d.ifs[0].ip}</text>`:'';
+const lnk=(d,i)=>{const f=far(d,i);if(!f)return'non câblé';const[n,q]=f;return'↔ '+n.name+' '+q.n+(n.type==='sw'?(q.mode==='trunk'?' [trunk]':' [VLAN '+q.vlan+']'):'')};
+const chkHtml=d=>{if(LABS[S.lab]&&LABS[S.lab].h)return'<small>Indicateur de cohérence masqué en mode dépannage : diagnostiquez avec ping, ipconfig et les commandes show.</small>';const L=check(d),e=L.some(x=>x[0]==='er');return`<div class='bx'><b class='${e?'er':L.length?'wn':'ok'}'>${e?'● Configuration incohérente':L.length?'● À vérifier':'● Configuration cohérente'}</b> <small>Ne garantit pas la connectivité : testez avec un ping.</small>${L.map(([l,t])=>`<div class='ck ${l}'>${esc(t)}</div>`).join('')}</div>`};
+const fld=(id,t,v,h,off)=>`<label class='f'>${t}<input id='${id}' value='${esc(v||'')}' autocomplete='off'${off?' disabled':''}><small>${h}</small></label>`;
+function pcHtml(d){const e=d.ifs[0],s=ui.dh,p=peer(d,0);
+ return`<div class='bx'><b>Eth0</b> <b class='${p?'ok':'er'}'>● ${p?'liaison active':'liaison inactive'}</b> <small>${esc(lnk(d,0))} · MAC ${e.mac}</small></div>
+<div class='sg'><button data-a='m4' data-v='0' class='${s?'':'on'}'>IP statique</button><button data-a='m4' data-v='1' class='${s?'on':''}'>DHCP</button></div>
+${fld('fi','Adresse IP',e.ip,'Identifie ce PC sur le réseau (ex. 192.168.1.10).',s)}
+${fld('fm','Masque de sous-réseau',e.mask,'Dit quelle partie de l’adresse désigne le réseau : 255.255.255.0 = /24.',s)}
+${fld('fg','Passerelle par défaut',d.gw,'Routeur à utiliser pour sortir du réseau local. Indispensable pour joindre un autre réseau.',s)}
+${fld('fd','Serveur DNS (facultatif)',d.dns,'Traduit un nom en adresse IP. Utile seulement pour utiliser des noms ; la résolution n’est pas encore simulée.',s)}
+<button data-a='apc'>${s?'Demander une adresse (DHCP)':'Appliquer'}</button>${s?'<small> Sans serveur DHCP actif sur ce réseau (routeur configuré), aucune adresse n’est attribuée.</small>':''}
+${browseHtml(d)}
+${chkHtml(d)}`}
+function swHtml(d){const vs=Object.keys(d.vlans).sort((a,b)=>a-b),opt=v=>vs.map(k=>`<option value='${k}'${k==v?' selected':''}>${k}</option>`).join('')+(d.vlans[v]?'':`<option value='${v}' selected>${v} (absent)</option>`);
+ const rows=d.ifs.map((x,i)=>`<tr><td>${x.n}</td><td><select data-w='m' data-p='${i}'><option${x.mode==='access'?' selected':''}>access</option><option${x.mode==='trunk'?' selected':''}>trunk</option></select></td><td><select data-w='v' data-p='${i}'${x.mode==='trunk'?' disabled':''}>${opt(x.vlan)}</select></td><td class='${peer(d,i)?'ok':''}'>${cab(d,i)?(peer(d,i)?'● ':'○ ')+esc(lnk(d,i)):'libre'}</td></tr>`).join('');
+ const mt=Object.keys(d.mt).map(k=>{const[v,m]=k.split('|');return`<tr><td>${v}</td><td>${m}</td><td>${d.mt[k]}</td></tr>`}).join('');
+ return`<div class='bx'><b>VLAN</b> <small>réseaux locaux virtuels : ils séparent les ports du switch en réseaux distincts.</small><div>${vs.map(v=>`<span class='tg'>${v} ${esc(d.vlans[v])}${v==='1'?'':` <button data-a='vdel' data-i='${v}'>✕</button>`}</span>`).join(' ')}</div><div class='g3'><input id='vi' placeholder='N° (ex. 10)'><input id='vn' placeholder='Nom'><button data-a='vadd'>Créer</button></div></div><table><tr><th>Port</th><th>Mode</th><th>VLAN</th><th>Liaison</th></tr>${rows}</table><small>Access : un seul VLAN, trames sans étiquette (PC, routeur). Trunk : transporte plusieurs VLAN entre deux switches, avec une étiquette 802.1Q (le VLAN 1 reste sans étiquette). Les deux extrémités d’un lien trunk doivent être configurées, et chaque VLAN doit exister sur les deux switches.</small><div class='bx'><b>Table MAC</b> <small>(VLAN · adresse · port)</small><table>${mt||'<tr><td>Vide : lancez un ping pour que le switch apprenne les adresses.</td></tr>'}</table></div>`+chkHtml(d)}
+ 
+ 
+function rtHtml(d){
+ const ifs=d.ifs.map((x,i)=>{const p=peer(d,i),h=x.dhcp;
+  return`<div class='bx'><b>${x.n}</b> <b class='${x.up?(p?'ok':'wn'):'er'}'>● ${x.up?(p?'active':'allumée, sans liaison'):'désactivée'}</b> <small>${esc(lnk(d,i))}</small>
+<div class='g2'><input id='ri${i}' placeholder='Adresse IP' value='${x.ip}'><input id='rm${i}' placeholder='Masque' value='${x.mask}'></div>
+<div class='g2'><button data-a='rif' data-i='${i}'>Appliquer l’adresse</button><button data-a='rup' data-i='${i}'>${x.up?'Désactiver':'Activer'}</button></div>
+<small>Serveur DHCP de cette interface (adresses distribuées aux PC de ce réseau) :</small>
+<div class='g3'><input id='rs${i}' placeholder='Début' value='${h?h.start:''}'><input id='rc${i}' placeholder='Nombre' value='${h?h.n:''}'><input id='rd${i}' placeholder='DNS' value='${h?h.dns:''}'></div>
+<div class='g2'><button data-a='rdh' data-i='${i}'>${h?'Mettre à jour':'Activer le DHCP'}</button>${h?`<button data-a='rdx' data-i='${i}'>Arrêter (${Object.keys(h.leases).length} bail)</button>`:'<span></span>'}</div></div>`}).join('');
+ const rt=[...d.ifs.filter(x=>x.up&&x.ip).map(x=>`<tr><td>C</td><td>${dot(netOf(x.ip,x.mask))}/${plen(x.mask)}</td><td>${x.n}</td><td></td></tr>`),
+  ...d.routes.map((r,k)=>`<tr><td>S</td><td>${r.n}/${plen(r.m)}</td><td>via ${r.v}</td><td><button data-a='rdel' data-i='${k}'>✕</button></td></tr>`)].join('');
+ return ifs+`<div class='bx'><b>Routes</b> <small>C = réseau connecté, S = route statique</small><table>${rt||'<tr><td>Aucune route active : donnez une adresse à une interface et activez-la.</td></tr>'}</table>
+<small>Route statique : indique par quel routeur voisin (saut suivant) joindre un réseau lointain.</small>
+<div class='g3'><input id='rn' placeholder='Réseau'><input id='rk' placeholder='Masque'><input id='rv' placeholder='Saut suivant'></div><button data-a='radd'>Ajouter la route</button></div>`+chkHtml(d)}
+function cfgHtml(d){if(ui.ln!=null&&S.links[ui.ln])return lnHtml(S.links[ui.ln]);if(!d)return EM('Aucune sélection','Touchez un équipement ou un câble du schéma pour afficher et modifier sa configuration.');
+ return`<p class='er' id='er'></p><b>${esc(d.name)}</b> <small>${{pc:'PC',sw:'Switch de niveau 2',rt:'Routeur',sv:'Serveur'}[d.type]}</small>`+(d.type==='pc'?pcHtml(d):d.type==='sv'?svHtml(d):d.type==='sw'?swHtml(d):'<br><small>L’adresse d’une interface sert de passerelle aux PC de son réseau.</small>'+rtHtml(d))}
+const fail=e=>{msg('⚠ '+e);const x=$('#er');if(x)x.textContent=e;return 0};
+Object.assign(A,{
+ tg:()=>{ui.open=!ui.open},
+ fit:()=>fit(),
+ sdns:()=>{const d=dv(ui.sel);d.svc.dns.on=!d.svc.dns.on;msg('Service DNS '+(d.svc.dns.on?'activé':'désactivé')+' sur '+d.name)},
+ sweb:()=>{const d=dv(ui.sel);d.svc.web.on=!d.svc.web.on;msg('Service web '+(d.svc.web.on?'activé':'désactivé')+' sur '+d.name)},
+ dadd:()=>{const d=dv(ui.sel),e=addRec(d,$('#dn').value.trim(),$('#di').value.trim());return e?fail(e):msg('Enregistrement DNS ajouté')},
+ ddel:D=>{delete dv(ui.sel).svc.dns.rec[D.i];msg('Enregistrement supprimé')},
+ wsave:()=>{const d=dv(ui.sel),v=$('#wp').value.trim().slice(0,160);if(!v)return fail('La page ne peut pas être vide.');d.svc.web.page=v;msg('Page enregistrée')},
+ web:()=>{const d=dv(ui.sel),u=$('#wu').value.trim(),r=browse(d,u);ui.wu=u;S.ev=r.ev;S.step=-1;ui.wr=r.ok?`200 OK — ${r.host} [${r.ip}]
+${r.page}`:'Échec : '+r.why;return msg(r.ok?'Page reçue (détail dans la Trace)':'⚠ '+r.why)},
+ undo:()=>undo(),redo:()=>redo(),
+ rmlink:()=>{if(ui.ln==null)return;S.links.splice(ui.ln,1);ui.ln=null;flush();S.devs.forEach(d=>d.mt={});msg('Câble supprimé')},
+ hint:()=>{const g=S.dbg;if(g&&g.hints<3&&!g.done)g.hints++},
+ dgv:()=>{const g=S.dbg;if(g&&!g.done)g.done=2},
+ dl:D=>exampleD(D.i),
+ exp:()=>{const data=pack(),fn='trame-projet.json';
+  (window.claude&&claude.use?claude.use('downloads'):Promise.resolve(null)).then(dl=>{
+   if(dl)return dl.save({filename:fn,data}).then(()=>msg('Projet exporté : '+fn),x=>msg(x&&x.code==='declined'?'Export annulé':'⚠ Export impossible ('+((x&&x.code)||'erreur')+')'));
+   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=fn;a.click();msg('Projet exporté : '+fn)}).catch(()=>msg('⚠ Export impossible dans ce contexte'));
+  return msg('Préparation de l’export…')},
+ imp:()=>{$('#fimp').click();return 0},
+ vadd:()=>{const d=dv(ui.sel),i=$('#vi').value.trim(),e=addVlan(d,i,$('#vn').value.trim());return e?fail(e):msg(`VLAN ${i} créé sur ${d.name}`)},
+ vdel:D=>{const d=dv(ui.sel),e=delVlan(d,D.i);return e?fail(e):msg(`VLAN ${D.i} supprimé de ${d.name}`)},
+ m4:D=>{ui.dh=D.v==='1'},
+ apc:()=>{const d=dv(ui.sel),g=k=>$(k).value.trim();
+  if(ui.dh){const r=dhcpRun(d);return msg(r.ok?`DHCP : ${d.name} a reçu ${r.ip} (détail dans l’onglet Trace)`:'⚠ DHCP : '+r.why)}
+  const e=setHost(d,g('#fi'),g('#fm'),g('#fg'),g('#fd'));return e?fail(e):msg(`${d.name} : configuration enregistrée`)},
+ rif:D=>{const d=dv(ui.sel),i=+D.i,e=setIf(d,d.ifs[i],$('#ri'+i).value.trim(),$('#rm'+i).value.trim());return e?fail(e):msg(`${d.name} ${d.ifs[i].n} : adresse enregistrée`)},
+ rup:D=>{const d=dv(ui.sel),x=d.ifs[+D.i];x.up=!x.up;msg(`${d.name} ${x.n} : ${x.up?'activée':'désactivée'}`)},
+ rdh:D=>{const d=dv(ui.sel),i=+D.i,g=k=>$(k+i).value.trim(),e=setDhcp(d,d.ifs[i],1,g('#rs'),g('#rc'),g('#rd'));return e?fail(e):msg(`DHCP enregistré sur ${d.ifs[i].n}`)},
+ rdx:D=>{const d=dv(ui.sel);setDhcp(d,d.ifs[+D.i],0);msg('Serveur DHCP arrêté')},
+ radd:()=>{const d=dv(ui.sel),g=k=>$(k).value.trim(),e=addRoute(d,g('#rn'),g('#rk'),g('#rv'));return e?fail(e):msg('Route statique ajoutée')},
+ rdel:D=>{dv(ui.sel).routes.splice(+D.i,1);msg('Route supprimée')}});
+Object.assign(A,{zin:()=>{ui.v.s=clampS(ui.v.s*1.25);applyView();return 0},zout:()=>{ui.v.s=clampS(ui.v.s/1.25);applyView();return 0}});
+document.addEventListener('click',e=>{const m=document.querySelector('.menu[open]');if(m&&(!m.contains(e.target)||e.target.closest('.pop button')))m.removeAttribute('open')});
+document.onclick=e=>{const b=e.target.closest('button');if(!b)return;const D=b.dataset;
+ if(D.k){ui.open=!(ui.open&&ui.tab===D.k);ui.tab=D.k;return panel()}
+ if(D.c){const i=$('#in');i.value=D.c;i.focus();return}
+ if(A[D.a]&&A[D.a](D)!==0)render()};
+document.onkeydown=e=>{const d=dv(ui.sel);if(e.key!=='Enter'||e.target.id!=='in'||!d)return;
+ const v=e.target.value;run(d,v);commit();if(/^\s*ping/i.test(v))msg('Parcours des paquets : onglet Trace');panel();$('#in').focus();draw()};
+document.onchange=e=>{const t=e.target,D=t.dataset||{};
+ if(t.id==='fimp'){const f=t.files&&t.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const j=JSON.parse(r.result);if(j.format&&j.format!=='netlab-project')throw 0;const p=j.project||j;if(!p||!Array.isArray(p.devs)||!Array.isArray(p.links))throw 0;useProject(p);msg(`Projet importé : ${f.name}`);render()}catch(x){msg('⚠ Fichier invalide : ce n’est pas un projet NetLab')}};
+  r.readAsText(f);t.value='';return}
+ if(D.w){const d=dv(ui.sel),i=+D.p,x=D.w==='m'?setPort(d,i,t.value,null):setPort(d,i,null,t.value);x?fail(x):msg(`${d.name} ${d.ifs[i].n} : ${D.w==='m'?'mode '+t.value:'VLAN '+t.value}`);render()}};
+example();render();
+</script><script>
+(()=>{let p;const w=document.getElementById('inst');
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();p=e;w.hidden=false});
+addEventListener('appinstalled',()=>{w.hidden=true;p=null});
+document.getElementById('instb').addEventListener('click',()=>{if(p){p.prompt();p=null;w.hidden=true}});
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))})();
+</script></body></html>
